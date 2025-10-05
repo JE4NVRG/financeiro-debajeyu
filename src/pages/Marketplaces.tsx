@@ -36,7 +36,7 @@ export default function Marketplaces() {
   
   // Buscar entradas do marketplace selecionado
   const { entradas: marketplaceEntradas, loading: entradasLoading } = useEntradas({
-    filters: selectedMarketplace ? { marketplaceId: selectedMarketplace.id } : {}
+    filtros: selectedMarketplace ? { marketplace_id: selectedMarketplace.id } : {}
   });
 
   const handleCreateMarketplace = async (data: NovoMarketplaceForm) => {

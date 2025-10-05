@@ -13,8 +13,8 @@ interface Fornecedor {
 }
 
 interface FornecedorFormProps {
-  fornecedor?: Fornecedor;
-  onSubmit: (fornecedor: Omit<Fornecedor, 'id'>) => Promise<void>;
+  fornecedor?: any;
+  onSubmit: (fornecedor: any) => Promise<void>;
   onCancel?: () => void;
   loading?: boolean;
 }

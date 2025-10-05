@@ -44,7 +44,7 @@ export function CompraModal({
             data: compra.data,
             descricao: compra.descricao,
             categoria: compra.categoria,
-            valor_total: compra.valor_total,
+            valor_total: compra.valor_total.toString(),
             forma: compra.forma,
             vencimento: compra.vencimento
           } : undefined}

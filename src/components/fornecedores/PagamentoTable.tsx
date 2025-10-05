@@ -20,10 +20,10 @@ interface Pagamento {
 }
 
 interface PagamentoTableProps {
-  pagamentos: Pagamento[];
-  onEdit?: (pagamento: Pagamento) => void;
+  pagamentos: any[];
+  onEdit?: (pagamento: any) => void;
   onDelete?: (id: string) => void;
-  onViewReceipt?: (pagamento: Pagamento) => void;
+  onViewReceipt?: (pagamento: any) => void;
   loading?: boolean;
 }
 
@@ -91,16 +91,16 @@ export function PagamentoTable({ pagamentos, onEdit, onDelete, onViewReceipt, lo
           {pagamentos.map((pagamento) => (
             <TableRow key={pagamento.id}>
               <TableCell>
-                {formatDate(pagamento.data)}
+                {formatDate(pagamento.data_pagamento || pagamento.data)}
               </TableCell>
               <TableCell className="font-medium">
-                {pagamento.fornecedor?.nome || 'N/A'}
+                {pagamento.compra?.fornecedor?.nome || pagamento.fornecedor?.nome || 'N/A'}
               </TableCell>
               <TableCell className="text-red-600 font-medium">
-                {formatBRL(pagamento.valor)}
+                {formatBRL(pagamento.valor_pago || pagamento.valor)}
               </TableCell>
-              <TableCell>{getMetodoBadge(pagamento.metodo)}</TableCell>
-              <TableCell>{getStatusBadge(pagamento.status)}</TableCell>
+              <TableCell>{getMetodoBadge(pagamento.metodo || 'transferencia')}</TableCell>
+              <TableCell>{getStatusBadge(pagamento.status || 'concluido')}</TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
                   {onViewReceipt && (

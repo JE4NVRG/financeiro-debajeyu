@@ -41,14 +41,14 @@ export function Dashboard() {
 
   // Calcular totais de fornecedores
   const totaisFornecedores = {
-    totalEmAberto: (compras?.reduce((sum, compra) => sum + compra.total_value, 0) || 0) - 
-                   (pagamentos?.reduce((sum, pagamento) => sum + pagamento.paid_value, 0) || 0),
+    totalEmAberto: (compras?.reduce((sum, compra) => sum + compra.valor_total, 0) || 0) - 
+                   (pagamentos?.reduce((sum, pagamento) => sum + pagamento.valor_pago, 0) || 0),
     pagamentosDoMes: pagamentos?.filter(pagamento => {
       const hoje = new Date()
-      const pagamentoDate = new Date(pagamento.payment_date)
+      const pagamentoDate = new Date(pagamento.data_pagamento)
       return pagamentoDate.getMonth() === hoje.getMonth() && 
              pagamentoDate.getFullYear() === hoje.getFullYear()
-    }).reduce((sum, pagamento) => sum + pagamento.paid_value, 0) || 0
+    }).reduce((sum, pagamento) => sum + pagamento.valor_pago, 0) || 0
   }
 
 

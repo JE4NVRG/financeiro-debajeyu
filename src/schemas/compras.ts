@@ -34,7 +34,7 @@ export const novaCompraSchema = z.object({
   ]).transform(val => typeof val === 'string' ? parseFloat(val) : val),
   
   forma: z.enum(['À Vista', 'Fiado'], {
-    errorMap: () => ({ message: 'Forma de pagamento deve ser À Vista ou Fiado' })
+    message: 'Forma de pagamento deve ser À Vista ou Fiado'
   }),
   
   vencimento: z.string()

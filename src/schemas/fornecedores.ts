@@ -9,7 +9,7 @@ export const fornecedorSchema = z.object({
     .refine(val => val.length > 0, 'Nome é obrigatório'),
   
   tipo: z.enum(['Fornecedor', 'Prestador de Serviço'], {
-    errorMap: () => ({ message: 'Tipo deve ser Fornecedor ou Prestador de Serviço' })
+    message: 'Tipo deve ser Fornecedor ou Prestador de Serviço'
   }).optional().default('Fornecedor')
 });
 
@@ -33,7 +33,7 @@ export const compraSchema = z.object({
     .refine(val => Number.isFinite(val), 'Valor deve ser um número válido'),
   
   tipo_pagamento: z.enum(['a_vista', 'fiado'], {
-    errorMap: () => ({ message: 'Tipo de pagamento deve ser À Vista ou Fiado' })
+    message: 'Tipo de pagamento deve ser À Vista ou Fiado'
   }),
   
   data_compra: z.string()
