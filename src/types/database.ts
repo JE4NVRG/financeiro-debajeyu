@@ -155,7 +155,11 @@ export interface NovaSaidaForm {
 export interface FiltrosEntrada {
   dataInicio?: string;
   dataFim?: string;
+  conta_id?: string;
   marketplace_id?: string;
+  valorMin?: string;
+  valorMax?: string;
+  comissaoPaga?: boolean;
   busca?: string;
 }
 

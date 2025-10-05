@@ -88,8 +88,8 @@ export function EntradaFilters({ filters, onFiltersChange, onClearFilters }: Ent
             <div className="space-y-2">
               <Label htmlFor="conta">Conta</Label>
               <Select
-                value={filters.contaId || ''}
-                onValueChange={(value) => updateFilter('contaId', value)}
+                value={filters.conta_id || ''}
+                onValueChange={(value) => updateFilter('conta_id', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as contas" />
@@ -108,8 +108,8 @@ export function EntradaFilters({ filters, onFiltersChange, onClearFilters }: Ent
             <div className="space-y-2">
               <Label htmlFor="marketplace">Marketplace</Label>
               <Select
-                value={filters.marketplaceId || ''}
-                onValueChange={(value) => updateFilter('marketplaceId', value)}
+                value={filters.marketplace_id || ''}
+                onValueChange={(value) => updateFilter('marketplace_id', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os marketplaces" />
