@@ -5,11 +5,12 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Checkbox } from './ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { CurrencyInput } from './ui/CurrencyInput';
 import { NovaEntradaForm, Conta, Marketplace } from '../types/database';
 import { formatBRL, parseBRLToNumber, formatBRLInput, getCurrentDate } from '../lib/utils';
 import { useContas } from '../hooks/useContas';
 import { useMarketplaces } from '../hooks/useMarketplaces';
-import { useBRLMask } from '../hooks/useBRLMask';
+import { useCurrencyMask } from '../hooks/useCurrencyMask';
 
 interface EntradaFormProps {
   onSubmit: (data: NovaEntradaForm) => void;
@@ -29,57 +30,55 @@ export function EntradaForm({ onSubmit, onCancel, loading = false, initialData }
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [valorNumerico, setValorNumerico] = useState<number>(0);
 
   const { contas } = useContas();
   const { marketplaces } = useMarketplaces();
-  const valorMask = useBRLMask();
+  const currencyMask = useCurrencyMask();
 
   // Encontrar a conta Cora automaticamente
   const contaCora = contas.find(conta => conta.nome.toLowerCase().includes('cora'));
 
   useEffect(() => {
     if (initialData) {
+      // Se há valor inicial, converter para número e definir
+      if (initialData.valor) {
+        const numericValue = typeof initialData.valor === 'number' 
+          ? initialData.valor
+          : currencyMask.parseToCanonical(initialData.valor);
+        setValorNumerico(numericValue);
+      } else {
+        setValorNumerico(0);
+      }
+
       setFormData({
         data: initialData.data || getCurrentDate(),
         conta_id: initialData.conta_id || contaCora?.id || '',
         marketplace_id: initialData.marketplace_id || '',
-        valor: '', // Sempre inicializar como string vazia
+        valor: initialData.valor || '',
         comissao_paga: initialData.comissao_paga || false,
         observacao: initialData.observacao || ''
       });
-      
-      // Se há valor inicial, formatar e definir no mask
-      if (initialData.valor) {
-        const valorString = typeof initialData.valor === 'number' 
-          ? initialData.valor.toString() 
-          : initialData.valor;
-        const formatted = valorMask.formatInputValue(valorString);
-        valorMask.setValue(formatted);
-        setFormData(prev => ({ ...prev, valor: formatted }));
-      }
     } else if (contaCora) {
       // Se não há dados iniciais, usar a conta Cora por padrão
       setFormData(prev => ({ ...prev, conta_id: contaCora.id }));
+      setValorNumerico(0);
     }
   }, [initialData, contaCora]);
 
-  const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value;
-    console.log('💰 Input do valor:', input);
+  const handleValorChange = (numericValue: number) => {
+    console.log('💰 Valor numérico recebido:', numericValue);
     
-    // Usar o hook useBRLMask para formatação
-    const formattedValue = valorMask.handleChange(input);
-    const numericValue = valorMask.parseValue(formattedValue);
-    
-    console.log('💰 Valor formatado:', formattedValue);
-    console.log('💰 Valor numérico:', numericValue);
-    
-    setFormData(prev => ({ ...prev, valor: formattedValue }));
+    setValorNumerico(numericValue);
+    setFormData(prev => ({ ...prev, valor: numericValue.toString() }));
     
     if (errors.valor && numericValue > 0) {
       setErrors(prev => ({ ...prev, valor: '' }));
     }
   };
+
+  // Calcular comissão 4% em tempo real
+  const comissaoValue = valorNumerico * 0.04;
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -97,8 +96,7 @@ export function EntradaForm({ onSubmit, onCancel, loading = false, initialData }
       newErrors.marketplace_id = 'Marketplace é obrigatório';
     }
 
-    const numericValue = valorMask.parseValue(valorMask.value);
-    if (numericValue <= 0) {
+    if (valorNumerico <= 0) {
       newErrors.valor = 'Valor deve ser maior que zero';
     }
 
@@ -110,16 +108,14 @@ export function EntradaForm({ onSubmit, onCancel, loading = false, initialData }
     e.preventDefault();
     
     console.log('📝 Dados do formulário antes da validação:', formData);
-    console.log('📝 Valor do mask:', valorMask.value);
-    console.log('📝 Valor parseado:', valorMask.parseValue(valorMask.value));
+    console.log('📝 Valor numérico:', valorNumerico);
     
     if (validateForm()) {
-      // Garantir que sempre use a conta Cora e converter valor para número
-      const numericValue = valorMask.parseValue(valorMask.value);
+      // Garantir que sempre use a conta Cora e usar valor sanitizado
       const dataToSubmit: NovaEntradaForm = {
         ...formData,
         conta_id: contaCora?.id || formData.conta_id,
-        valor: numericValue.toString() // Manter como string para compatibilidade com NovaEntradaForm
+        valor: currencyMask.ensureTwoDecimals(valorNumerico).toString() // Garantir duas casas decimais
       };
       
       console.log('📝 Dados a serem enviados:', dataToSubmit);
@@ -149,15 +145,14 @@ export function EntradaForm({ onSubmit, onCancel, loading = false, initialData }
 
         <div className="space-y-2">
           <Label htmlFor="valor">Valor *</Label>
-          <Input
+          <CurrencyInput
             id="valor"
-            type="text"
-            value={valorMask.value}
+            value={valorNumerico}
             onChange={handleValorChange}
-            placeholder="R$ 0,00"
-            className={errors.valor ? 'border-red-500' : ''}
+            placeholder="Digite o valor..."
+            showError={!!errors.valor}
+            errorMessage={errors.valor}
           />
-          {errors.valor && <p className="text-sm text-red-500">{errors.valor}</p>}
         </div>
       </div>
 
@@ -183,6 +178,15 @@ export function EntradaForm({ onSubmit, onCancel, loading = false, initialData }
         </Select>
         {errors.marketplace_id && <p className="text-sm text-red-500">{errors.marketplace_id}</p>}
       </div>
+
+      {/* Preview da comissão */}
+      {valorNumerico > 0 && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-700">
+            <strong>Comissão = 4% de {currencyMask.formatBRL(valorNumerico)} = {currencyMask.formatBRL(comissaoValue)}</strong>
+          </p>
+        </div>
+      )}
 
       <div className="flex items-center space-x-2">
         <Checkbox
