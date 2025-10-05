@@ -28,7 +28,8 @@ export function useEntradas(options: UseEntradasOptions = {}): UseEntradasReturn
         .select(`
           *,
           conta:contas(nome),
-          marketplace:marketplaces(nome)
+          marketplace:marketplaces(nome),
+          usuario:usuarios(login)
         `)
         .order('data', { ascending: false });
 
@@ -86,16 +87,14 @@ export function useEntradas(options: UseEntradasOptions = {}): UseEntradasReturn
       console.log('👤 Usuário atual:', user);
       console.log('🔑 user.id que será usado:', user.id);
       
-      // Converter valor BRL para número
-      const cleanValue = entrada.valor
-        .replace(/\./g, '') // Remove pontos de milhares
-        .replace(',', '.'); // Substitui vírgula por ponto
-      
-      const valorNumerico = parseFloat(cleanValue);
+      // Converter valor para número - o valor já vem como número do CurrencyInput
+      const valorNumerico = typeof entrada.valor === 'number' 
+        ? entrada.valor 
+        : parseFloat(entrada.valor.toString());
       
       console.log('💰 Conversão de valor:', {
         original: entrada.valor,
-        limpo: cleanValue,
+        tipo: typeof entrada.valor,
         numerico: valorNumerico
       });
 
@@ -149,11 +148,10 @@ export function useEntradas(options: UseEntradasOptions = {}): UseEntradasReturn
       if (entrada.data) updateData.data = entrada.data;
       if (entrada.marketplace_id) updateData.marketplace_id = entrada.marketplace_id;
       if (entrada.valor) {
-        // Usar a mesma lógica de conversão corrigida
-        const cleanValue = entrada.valor
-          .replace(/\./g, '') // Remove pontos de milhares
-          .replace(',', '.'); // Substitui vírgula por ponto
-        updateData.valor = parseFloat(cleanValue) || 0;
+        // Converter valor para número - o valor já vem como número do CurrencyInput
+        updateData.valor = typeof entrada.valor === 'number' 
+          ? entrada.valor 
+          : parseFloat(entrada.valor.toString());
       }
       if (entrada.comissao_paga !== undefined) updateData.comissao_paga = entrada.comissao_paga;
       if (entrada.observacao !== undefined) updateData.observacao = entrada.observacao || null;
