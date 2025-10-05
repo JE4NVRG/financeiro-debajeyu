@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Plus, Edit, Trash2, Filter, X } from 'lucide-react'
+import { Plus, Edit, Trash2, Filter, X, Search, ChevronUp, ChevronDown } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
@@ -22,6 +22,14 @@ export function Investimentos() {
   const [editingInvestimento, setEditingInvestimento] = useState<Investimento | null>(null)
   const [investimentoToDelete, setInvestimentoToDelete] = useState<Investimento | null>(null)
   const [selectedSocio, setSelectedSocio] = useState<string>('')
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [sortConfig, setSortConfig] = useState<{
+    key: 'data' | 'descricao' | 'socio' | 'valor'
+    direction: 'asc' | 'desc'
+  }>({
+    key: 'data',
+    direction: 'desc'
+  })
   const [formData, setFormData] = useState({
     data: new Date().toISOString().split('T')[0], // Data de hoje por padrão
     descricao: '',
@@ -134,14 +142,78 @@ export function Investimentos() {
     }))
   }
 
-  // Filtrar investimentos por sócio
-  const filteredInvestimentos = selectedSocio 
-    ? investimentos.filter(inv => inv.socio_id === selectedSocio)
-    : investimentos
+  // Função para ordenar investimentos
+  const sortInvestimentos = (investimentos: Investimento[]) => {
+    return [...investimentos].sort((a, b) => {
+      let aValue: any
+      let bValue: any
+      
+      switch (sortConfig.key) {
+        case 'data':
+          aValue = new Date(a.data)
+          bValue = new Date(b.data)
+          break
+        case 'descricao':
+          aValue = a.descricao.toLowerCase()
+          bValue = b.descricao.toLowerCase()
+          break
+        case 'socio':
+          aValue = a.socios?.nome?.toLowerCase() || ''
+          bValue = b.socios?.nome?.toLowerCase() || ''
+          break
+        case 'valor':
+          aValue = a.valor
+          bValue = b.valor
+          break
+        default:
+          return 0
+      }
+      
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1
+      }
+      return 0
+    })
+  }
+
+  // Filtrar e ordenar investimentos
+  const filteredInvestimentos = sortInvestimentos(
+    investimentos.filter(inv => {
+      // Filtro por sócio
+      const matchesSocio = selectedSocio ? inv.socio_id === selectedSocio : true
+      
+      // Filtro por termo de pesquisa
+      const matchesSearch = searchTerm ? (
+        (inv.descricao && inv.descricao.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        formatBRL(inv.valor).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inv.valor.toString().includes(searchTerm.replace(/[^\d,]/g, '').replace(',', '.'))
+      ) : true
+      
+
+      
+      return matchesSocio && matchesSearch
+    })
+  )
+
+  // Calcular total dos investimentos filtrados
+  const totalInvestimentos = filteredInvestimentos.reduce((sum, inv) => sum + inv.valor, 0)
+  
+  // Função para alterar ordenação
+  const handleSort = (key: 'data' | 'descricao' | 'socio' | 'valor') => {
+    setSortConfig(prevConfig => ({
+      key,
+      direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc'
+    }))
+  }
 
   // Limpar filtro
   const clearFilter = () => {
     setSelectedSocio('')
+    setSearchTerm('')
+    setSortConfig({ key: 'data', direction: 'desc' })
     setSearchParams({})
   }
 
@@ -324,6 +396,23 @@ export function Investimentos() {
         </Button>
       </div>
 
+      {/* Card com total geral */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-blue-700">
+            Total dos Investimentos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold text-blue-900">
+            {formatBRL(totalInvestimentos)}
+          </div>
+          <p className="text-xs text-blue-600 mt-1">
+            {filteredInvestimentos.length} investimento(s) {searchTerm || selectedSocio ? 'filtrado(s)' : 'total'}
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Cards com totais por sócio */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {getTotalsBySocio().map((socio) => (
@@ -365,25 +454,95 @@ export function Investimentos() {
             <div>
               <CardTitle>Lista de Investimentos</CardTitle>
               <CardDescription>
-                {filteredInvestimentos.length} investimento(s) {selectedSocio ? 'filtrado(s)' : 'cadastrado(s)'}
+                {filteredInvestimentos.length} investimento(s) {selectedSocio || searchTerm ? 'filtrado(s)' : 'cadastrado(s)'}
               </CardDescription>
             </div>
-            {selectedSocio && (
-              <Button variant="outline" size="sm" onClick={clearFilter}>
-                <X className="h-4 w-4 mr-2" />
-                Limpar Filtro
-              </Button>
-            )}
+            <div className="flex items-center space-x-2">
+              {/* Campo de pesquisa */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Pesquisar por descrição ou valor..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-64"
+                />
+                {searchTerm && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                    onClick={() => setSearchTerm('')}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+              {(selectedSocio || searchTerm) && (
+                <Button variant="outline" size="sm" onClick={clearFilter}>
+                  <X className="h-4 w-4 mr-2" />
+                  Limpar Filtros
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Sócio</TableHead>
-                <TableHead>Valor</TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted/50 select-none"
+                  onClick={() => handleSort('data')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Data</span>
+                    {sortConfig.key === 'data' && (
+                      sortConfig.direction === 'asc' ? 
+                        <ChevronUp className="h-4 w-4" /> : 
+                        <ChevronDown className="h-4 w-4" />
+                    )}
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted/50 select-none"
+                  onClick={() => handleSort('descricao')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Descrição</span>
+                    {sortConfig.key === 'descricao' && (
+                      sortConfig.direction === 'asc' ? 
+                        <ChevronUp className="h-4 w-4" /> : 
+                        <ChevronDown className="h-4 w-4" />
+                    )}
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted/50 select-none"
+                  onClick={() => handleSort('socio')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Sócio</span>
+                    {sortConfig.key === 'socio' && (
+                      sortConfig.direction === 'asc' ? 
+                        <ChevronUp className="h-4 w-4" /> : 
+                        <ChevronDown className="h-4 w-4" />
+                    )}
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted/50 select-none"
+                  onClick={() => handleSort('valor')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Valor</span>
+                    {sortConfig.key === 'valor' && (
+                      sortConfig.direction === 'asc' ? 
+                        <ChevronUp className="h-4 w-4" /> : 
+                        <ChevronDown className="h-4 w-4" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -416,8 +575,18 @@ export function Investimentos() {
               ))}
               {filteredInvestimentos.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    {selectedSocio ? 'Nenhum investimento encontrado para este sócio' : 'Nenhum investimento cadastrado'}
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    {searchTerm || selectedSocio 
+                      ? 'Nenhum investimento encontrado com os filtros aplicados' 
+                      : 'Nenhum investimento cadastrado'
+                    }
+                    {(searchTerm || selectedSocio) && (
+                      <div className="mt-2">
+                        <Button variant="outline" size="sm" onClick={clearFilter}>
+                          Limpar filtros
+                        </Button>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               )}
