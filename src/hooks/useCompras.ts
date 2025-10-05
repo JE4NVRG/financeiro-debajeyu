@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { 
-  CompraComDetalhes, 
+  CompraComSaldo, 
   NovaCompraForm, 
   UseComprasReturn,
   FiltrosCompra 
@@ -16,7 +16,7 @@ import {
 import { novaCompraSchema } from '../schemas/compras';
 
 export function useCompras(fornecedorId?: string, filtros?: FiltrosCompra): UseComprasReturn {
-  const [compras, setCompras] = useState<CompraComDetalhes[]>([]);
+  const [compras, setCompras] = useState<CompraComSaldo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const { user } = useAuth();
@@ -57,22 +57,18 @@ export function useCompras(fornecedorId?: string, filtros?: FiltrosCompra): UseC
 
       // Aplicar filtros adicionais
       if (filtros) {
-        const { tipo_pagamento, status, data_inicio, data_fim } = filtros;
-
-        if (tipo_pagamento) {
-          query = query.eq('tipo_pagamento', tipo_pagamento);
-        }
+        const { status, dataInicio, dataFim } = filtros;
 
         if (status) {
           query = query.eq('status', status);
         }
 
-        if (data_inicio) {
-          query = query.gte('data', data_inicio);
+        if (dataInicio) {
+          query = query.gte('data', dataInicio);
         }
 
-        if (data_fim) {
-          query = query.lte('data', data_fim);
+        if (dataFim) {
+          query = query.lte('data', dataFim);
         }
       }
 
@@ -83,7 +79,11 @@ export function useCompras(fornecedorId?: string, filtros?: FiltrosCompra): UseC
 
       if (error) throw error;
 
-      setCompras(data || []);
+      setCompras((data || []).map(item => ({
+        ...item,
+        total_pago: item.valor_pago || 0,
+        saldo_aberto: item.valor_pendente || 0
+      })));
     } catch (err) {
       setError(err as Error);
       console.error('Erro ao buscar compras:', err);
@@ -141,7 +141,7 @@ export function useCompras(fornecedorId?: string, filtros?: FiltrosCompra): UseC
 
     try {
       // Validar dados parciais
-      if (compra.data_compra) {
+      if (compra.data) {
         // Buscar pagamentos existentes para validar datas
         const { data: pagamentos } = await supabase
           .from('pagamentos_fornecedores')
@@ -149,7 +149,7 @@ export function useCompras(fornecedorId?: string, filtros?: FiltrosCompra): UseC
           .eq('compra_id', id);
 
         const datasPagamentos = pagamentos?.map(p => p.data_pagamento) || [];
-        validateCompraDate(compra.data_compra, datasPagamentos);
+        validateCompraDate(compra.data, datasPagamentos);
       }
 
       const updateData: any = {
@@ -157,9 +157,9 @@ export function useCompras(fornecedorId?: string, filtros?: FiltrosCompra): UseC
       };
 
       if (compra.descricao) updateData.descricao = compra.descricao.trim();
-      if (compra.valor) updateData.valor = compra.valor;
-      if (compra.tipo_pagamento) updateData.tipo_pagamento = compra.tipo_pagamento;
-      if (compra.data_compra) updateData.data_compra = compra.data_compra;
+      if (compra.valor_total) updateData.valor_total = parseFloat(compra.valor_total);
+      if (compra.forma) updateData.forma = compra.forma;
+      if (compra.data) updateData.data = compra.data;
       if (compra.observacao !== undefined) {
         updateData.observacao = compra.observacao?.trim() || null;
       }

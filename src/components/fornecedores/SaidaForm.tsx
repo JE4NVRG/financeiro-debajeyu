@@ -17,6 +17,8 @@ interface SaidaFormProps {
   onCancel: () => void;
   loading?: boolean;
   initialData?: Partial<NovaSaidaForm>;
+  compras?: CompraComSaldo[];
+  fornecedores?: any[];
 }
 
 export function SaidaForm({ 

@@ -246,13 +246,14 @@ export function FornecedorTable({
       </div>
 
       <ConfirmationDialog
-        isOpen={deleteConfirm.isOpen}
-        onClose={() => setDeleteConfirm({ isOpen: false, fornecedor: null })}
+        open={deleteConfirm.isOpen}
+        onOpenChange={(open) => setDeleteConfirm({ isOpen: open, fornecedor: open ? deleteConfirm.fornecedor : null })}
         onConfirm={handleDeleteConfirm}
         title="Excluir Fornecedor"
         description={`Tem certeza que deseja excluir o fornecedor "${deleteConfirm.fornecedor?.nome}"? Esta ação não pode ser desfeita.`}
         confirmText="Excluir"
         cancelText="Cancelar"
+        variant="destructive"
       />
     </>
   );

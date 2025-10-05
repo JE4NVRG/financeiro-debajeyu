@@ -15,13 +15,17 @@ interface Saida {
 }
 
 interface SaidaTableProps {
-  saidas: Saida[];
+  saidas?: Saida[];
+  pagamentos?: any[];
+  compras?: any[];
+  fornecedores?: any[];
   onEdit?: (saida: Saida) => void;
   onDelete?: (id: string) => void;
+  onRefresh?: () => void;
   loading?: boolean;
 }
 
-export function SaidaTable({ saidas, onEdit, onDelete, loading = false }: SaidaTableProps) {
+export function SaidaTable({ saidas = [], pagamentos, compras, fornecedores, onEdit, onDelete, onRefresh, loading = false }: SaidaTableProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">

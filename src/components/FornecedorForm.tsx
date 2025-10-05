@@ -16,7 +16,7 @@ interface FornecedorFormProps {
 export function FornecedorForm({ onSubmit, onCancel, loading = false, initialData }: FornecedorFormProps) {
   const [formData, setFormData] = useState<NovoFornecedorForm>({
     nome: '',
-    tipo: 'Pessoa Física',
+    tipo: 'Camisa',
     status: 'Ativo',
     observacao: ''
   });
@@ -27,7 +27,7 @@ export function FornecedorForm({ onSubmit, onCancel, loading = false, initialDat
     if (initialData) {
       setFormData({
         nome: initialData.nome || '',
-        tipo: initialData.tipo || 'Pessoa Física',
+        tipo: initialData.tipo || 'Camisa',
         status: initialData.status || 'Ativo',
         observacao: initialData.observacao || ''
       });
@@ -96,7 +96,7 @@ export function FornecedorForm({ onSubmit, onCancel, loading = false, initialDat
           <Select
             value={formData.tipo}
             onValueChange={(value) => {
-              setFormData(prev => ({ ...prev, tipo: value as 'Pessoa Física' | 'Pessoa Jurídica' }));
+              setFormData(prev => ({ ...prev, tipo: value as 'Camisa' | 'Gráfica' | 'Outros' }));
               if (errors.tipo) setErrors(prev => ({ ...prev, tipo: '' }));
             }}
           >
@@ -106,6 +106,9 @@ export function FornecedorForm({ onSubmit, onCancel, loading = false, initialDat
             <SelectContent>
               <SelectItem value="Pessoa Física">Pessoa Física</SelectItem>
               <SelectItem value="Pessoa Jurídica">Pessoa Jurídica</SelectItem>
+              <SelectItem value="Camisa">Camisa</SelectItem>
+              <SelectItem value="Gráfica">Gráfica</SelectItem>
+              <SelectItem value="Outros">Outros</SelectItem>
             </SelectContent>
           </Select>
           {errors.tipo && <p className="text-sm text-red-500">{errors.tipo}</p>}

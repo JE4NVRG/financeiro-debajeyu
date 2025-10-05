@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { 
-  PagamentoFornecedorComDetalhes, 
-  NovoPagamentoFornecedorForm, 
+  PagamentoComDetalhes, 
+  NovoPagamentoForm, 
   UsePagamentosFornecedoresReturn,
-  FiltrosPagamentoFornecedor 
+  NovaSaidaForm 
 } from '../types/database';
 import { toast } from 'sonner';
 import { 
@@ -15,9 +15,9 @@ import {
 
 export function usePagamentosFornecedores(
   compraId?: string, 
-  filtros?: FiltrosPagamentoFornecedor
+  filtros?: any
 ): UsePagamentosFornecedoresReturn {
-  const [pagamentos, setPagamentos] = useState<PagamentoFornecedorComDetalhes[]>([]);
+  const [pagamentos, setPagamentos] = useState<PagamentoComDetalhes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const { user } = useAuth();
@@ -72,7 +72,7 @@ export function usePagamentosFornecedores(
     }
   };
 
-  const createPagamento = async (pagamento: NovoPagamentoFornecedorForm) => {
+  const createPagamento = async (pagamento: NovoPagamentoForm) => {
     if (!user) throw new Error('Usuário não autenticado');
 
     try {
@@ -125,12 +125,12 @@ export function usePagamentosFornecedores(
     }
   };
 
-  const updatePagamento = async (id: string, pagamento: Partial<NovoPagamentoFornecedorForm>) => {
+  const updatePagamento = async (id: string, pagamento: Partial<NovoPagamentoForm>) => {
     if (!user) throw new Error('Usuário não autenticado');
 
     try {
       // Se está alterando o valor, validar
-      if (pagamento.valor) {
+      if (pagamento.valor_pago) {
         const { data: pagamentoAtual } = await supabase
           .from('view_pagamentos_fornecedores_detalhes')
           .select('compra_id, valor_compra, total_pago_compra')
@@ -139,8 +139,8 @@ export function usePagamentosFornecedores(
 
         if (pagamentoAtual) {
           // Calcular total pago sem este pagamento
-          const totalSemEstePagamento = (pagamentoAtual.total_pago_compra || 0) - pagamento.valor;
-          validatePagamentoAmount(pagamento.valor, pagamentoAtual.valor_compra, totalSemEstePagamento);
+          const totalSemEstePagamento = (pagamentoAtual.total_pago_compra || 0) - parseFloat(pagamento.valor_pago);
+          validatePagamentoAmount(parseFloat(pagamento.valor_pago), pagamentoAtual.valor_compra, totalSemEstePagamento);
         }
       }
 
@@ -148,7 +148,7 @@ export function usePagamentosFornecedores(
         updated_at: new Date().toISOString()
       };
 
-      if (pagamento.valor) updateData.valor = pagamento.valor;
+      if (pagamento.valor_pago) updateData.valor_pago = parseFloat(pagamento.valor_pago);
       if (pagamento.data_pagamento) updateData.data_pagamento = pagamento.data_pagamento;
       if (pagamento.observacao !== undefined) {
         updateData.observacao = pagamento.observacao?.trim() || null;
@@ -204,13 +204,24 @@ export function usePagamentosFornecedores(
     }
   }, [user, compraId, filtros]);
 
+  const createSaida = async (saida: NovaSaidaForm) => {
+    // Implementação básica - pode ser expandida conforme necessário
+    return createPagamento({
+      compra_id: saida.compra_id || '',
+      conta_id: saida.conta_id,
+      data_pagamento: saida.data_pagamento,
+      valor_pago: saida.valor_pago,
+      observacao: saida.observacao
+    });
+  };
+
   return {
     pagamentos,
     loading,
     error,
     refetch,
     createPagamento,
-    updatePagamento,
+    createSaida,
     deletePagamento
   };
 }

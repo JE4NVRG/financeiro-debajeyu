@@ -13,7 +13,9 @@ export function useTotais(): UseTotaisReturn {
   const [totaisMarketplace, setTotaisMarketplace] = useState<TotaisMarketplace[]>([]);
   const [totaisDashboard, setTotaisDashboard] = useState<TotaisDashboard>({
     total_cora: 0,
-    total_comissao: 0
+    total_comissao: 0,
+    total_aberto_fornecedores: 0,
+    pagamentos_mes: 0
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -38,7 +40,7 @@ export function useTotais(): UseTotaisReturn {
       if (!entradas) {
         setTotaisConta([]);
         setTotaisMarketplace([]);
-        setTotaisDashboard({ total_cora: 0, total_comissao: 0 });
+        setTotaisDashboard({ total_cora: 0, total_comissao: 0, total_aberto_fornecedores: 0, pagamentos_mes: 0 });
         return;
       }
 
@@ -96,7 +98,9 @@ export function useTotais(): UseTotaisReturn {
 
       setTotaisDashboard({
         total_cora: totalCora,
-        total_comissao: totalComissao
+        total_comissao: totalComissao,
+        total_aberto_fornecedores: 0,
+        pagamentos_mes: 0
       });
 
     } catch (err) {

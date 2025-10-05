@@ -8,9 +8,17 @@ export const fornecedorSchema = z.object({
     .trim()
     .refine(val => val.length > 0, 'Nome é obrigatório'),
   
-  tipo: z.enum(['Fornecedor', 'Prestador de Serviço'], {
-    message: 'Tipo deve ser Fornecedor ou Prestador de Serviço'
-  }).optional().default('Fornecedor')
+  tipo: z.enum(['Camisa', 'Gráfica', 'Outros'], {
+    message: 'Tipo deve ser Camisa, Gráfica ou Outros'
+  }),
+  
+  status: z.enum(['Ativo', 'Inativo'], {
+    message: 'Status deve ser Ativo ou Inativo'
+  }).optional().default('Ativo'),
+  
+  observacao: z.string()
+    .max(500, 'Observação deve ter no máximo 500 caracteres')
+    .optional()
 });
 
 // Schema para atualização de fornecedor (campos opcionais)

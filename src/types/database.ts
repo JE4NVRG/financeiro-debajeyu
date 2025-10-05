@@ -77,6 +77,15 @@ export interface CompraComSaldo extends Compra {
   fornecedor_tipo: string;
 }
 
+export interface CompraComDetalhes extends Compra {
+  total_pago: number;
+  saldo_aberto: number;
+  fornecedor_nome: string;
+  fornecedor_tipo: string;
+  valor_pago?: number;
+  valor_pendente?: number;
+}
+
 export interface PagamentoFornecedor {
   id: string;
   compra_id: string;
@@ -89,6 +98,7 @@ export interface PagamentoFornecedor {
 }
 
 export interface PagamentoComDetalhes extends PagamentoFornecedor {
+  paid_value?: number;
   compra: {
     descricao: string;
     fornecedor: {
@@ -119,7 +129,7 @@ export interface NovoMarketplaceForm {
 
 export interface NovoFornecedorForm {
   nome: string;
-  tipo: 'Camisa' | 'Gráfica' | 'Outros';
+  tipo: 'Pessoa Física' | 'Pessoa Jurídica' | 'Camisa' | 'Gráfica' | 'Outros';
   status: 'Ativo' | 'Inativo';
   observacao?: string;
 }
@@ -127,11 +137,15 @@ export interface NovoFornecedorForm {
 export interface NovaCompraForm {
   fornecedor_id: string;
   data: string;
+  data_compra?: string;
   descricao: string;
   categoria: string;
   valor_total: string; // String para máscara BRL
+  valor?: string;
   forma: 'À Vista' | 'Fiado';
+  tipo_pagamento?: 'À Vista' | 'Fiado';
   vencimento?: string;
+  observacao?: string;
 }
 
 export interface NovoPagamentoForm {
@@ -173,6 +187,9 @@ export interface FiltrosCompra {
   status?: string;
   dataInicio?: string;
   dataFim?: string;
+  data_inicio?: string;
+  data_fim?: string;
+  tipo_pagamento?: string;
   busca?: string;
 }
 
@@ -250,11 +267,19 @@ export interface UseComprasReturn {
   deleteCompra: (id: string) => Promise<void>;
 }
 
+// Adicionar AuthUser interface
+export interface AuthUser {
+  id: string;
+  email?: string;
+  login?: string;
+}
+
 export interface UsePagamentosFornecedoresReturn {
   pagamentos: PagamentoComDetalhes[];
   loading: boolean;
   error: Error | null;
   refetch: () => void;
+  refreshPagamentos?: () => void;
   createPagamento: (pagamento: NovoPagamentoForm) => Promise<void>;
   createSaida: (saida: NovaSaidaForm) => Promise<void>;
   deletePagamento: (id: string) => Promise<void>;

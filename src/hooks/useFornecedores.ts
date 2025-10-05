@@ -75,7 +75,7 @@ export function useFornecedores(filtros?: FiltrosFornecedor): UseFornecedoresRet
       console.log('🔄 Criando fornecedor:', validatedData);
       console.log('👤 Usuário atual:', user);
       console.log('🔑 User ID:', user.id);
-      console.log('📧 User email:', user.email);
+      console.log('📧 User login:', user.login);
       console.log('🔐 User auth status:', !!user);
 
       // Verificar se o usuário está autenticado no Supabase
@@ -104,8 +104,8 @@ export function useFornecedores(filtros?: FiltrosFornecedor): UseFornecedoresRet
 
       const fornecedorData = {
         nome: validatedData.nome,
-        tipo: validatedData.tipo || 'Fornecedor',
-        status: 'Ativo',
+        tipo: validatedData.tipo,
+        status: validatedData.status || 'Ativo',
         observacao: validatedData.observacao || null,
         usuario_id: user.id
       };

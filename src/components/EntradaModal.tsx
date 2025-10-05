@@ -28,7 +28,7 @@ export function EntradaModal({
     data: editingEntry.data,
     conta_id: editingEntry.conta_id,
     marketplace_id: editingEntry.marketplace_id,
-    valor: editingEntry.valor,
+    valor: editingEntry.valor.toString(),
     comissao_paga: editingEntry.comissao_paga,
     observacao: editingEntry.observacao
   } : undefined;
