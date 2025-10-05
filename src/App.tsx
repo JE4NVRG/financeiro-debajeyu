@@ -7,6 +7,8 @@ import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { Investimentos } from './pages/Investimentos'
 import { Socios } from './pages/Socios'
+import Contas from './pages/Contas'
+import Marketplaces from './pages/Marketplaces'
 
 function App() {
   return (
@@ -40,6 +42,20 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Socios />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/contas" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Contas />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/marketplaces" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Marketplaces />
                 </Layout>
               </ProtectedRoute>
             } />

@@ -4,7 +4,9 @@ import {
   TrendingUp, 
   Users, 
   LogOut,
-  Building2
+  Building2,
+  CreditCard,
+  Store
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { Button } from '../ui/button'
@@ -19,6 +21,16 @@ const menuItems = [
     name: 'Investimentos',
     href: '/investimentos',
     icon: TrendingUp
+  },
+  {
+    name: 'Contas',
+    href: '/contas',
+    icon: CreditCard
+  },
+  {
+    name: 'Marketplaces',
+    href: '/marketplaces',
+    icon: Store
   },
   {
     name: 'Sócios',

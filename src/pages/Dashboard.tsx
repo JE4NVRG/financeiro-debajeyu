@@ -4,6 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table'
 import { supabase, Socio, Investimento } from '../lib/supabase'
 import { useToast } from '../components/ui/toast'
+import { useTotais } from '../hooks/useTotais'
+import { formatBRL } from '../lib/utils'
+import { CreditCard, Percent } from 'lucide-react'
 
 interface SocioSummary {
   id: string
@@ -26,14 +29,9 @@ export function Dashboard() {
   
   const { addToast } = useToast()
   const navigate = useNavigate()
+  const { totaisDashboard } = useTotais()
 
-  // Formatar valor em BRL
-  const formatBRL = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value)
-  }
+
 
   // Formatar data - corrigido para evitar problema de timezone
   const formatDate = (dateString: string) => {
@@ -181,7 +179,7 @@ export function Dashboard() {
       </div>
 
       {/* Cards de resumo */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Pré-Saldo</CardTitle>
@@ -220,6 +218,40 @@ export function Dashboard() {
             </div>
             <p className="text-xs text-muted-foreground">
               Diferença entre pré-saldo e investido
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-blue-700 flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Total enviado ao Cora
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {formatBRL(totaisDashboard.total_cora)}
+            </div>
+            <p className="text-xs text-blue-600">
+              Entradas na conta Cora
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-orange-700 flex items-center gap-2">
+              <Percent className="h-4 w-4" />
+              Comissão 4% acumulada
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {formatBRL(totaisDashboard.total_comissao)}
+            </div>
+            <p className="text-xs text-orange-600">
+              Total de comissões pagas
             </p>
           </CardContent>
         </Card>
