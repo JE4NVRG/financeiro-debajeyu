@@ -102,7 +102,7 @@ export function EntradaTable({ entradas, onEdit, onDelete, loading = false }: En
                 {entrada.observacao || '-'}
               </TableCell>
               <TableCell className="text-sm text-gray-600">
-                {entrada.usuario?.nome || 'Sistema'}
+                {entrada.usuario?.login || 'Sistema'}
               </TableCell>
               <TableCell className="text-sm text-gray-600">
                 {formatDateTime(entrada.created_at)}

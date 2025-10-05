@@ -2,13 +2,20 @@ import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
-import { Plus, CreditCard, TrendingUp, Hash, ArrowUpRight } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Plus, CreditCard, TrendingUp, Hash, ArrowUpRight, ArrowDownLeft, Building2 } from 'lucide-react';
 import { EntradaTable } from '../components/EntradaTable';
 import { EntradaFilters } from '../components/EntradaFilters';
 import { EntradaModal } from '../components/EntradaModal';
+import { SaidaForm } from '../components/fornecedores/SaidaForm';
+import { SaidaTable } from '../components/fornecedores/SaidaTable';
 import { useEntradas } from '../hooks/useEntradas';
 import { useContas } from '../hooks/useContas';
 import { useTotais } from '../hooks/useTotais';
+import { usePagamentosFornecedores } from '../hooks/usePagamentosFornecedores';
+import { useCompras } from '../hooks/useCompras';
+import { useFornecedores } from '../hooks/useFornecedores';
 import { FiltrosEntrada, NovaEntradaForm, Entrada } from '../types/database';
 import { formatBRL } from '../lib/utils';
 import { toast } from 'sonner';
@@ -17,6 +24,8 @@ export default function Contas() {
   const [filters, setFilters] = useState<FiltrosEntrada>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<Entrada | null>(null);
+  const [isNewSaidaOpen, setIsNewSaidaOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('entradas');
 
   const { contas } = useContas();
   const { totaisConta } = useTotais();
@@ -29,14 +38,23 @@ export default function Contas() {
     refetch 
   } = useEntradas({ filtros: filters });
 
+  // Hooks para fornecedores
+  const { pagamentos, createPagamento, refreshPagamentos } = usePagamentosFornecedores();
+  const { compras } = useCompras();
+  const { fornecedores } = useFornecedores();
+
   // Encontrar a conta Cora
   const contaCora = contas.find(conta => conta.nome.toLowerCase().includes('cora'));
   const totalCora = totaisConta.find(total => total.conta_id === contaCora?.id);
   
+  // Calcular totais de saídas
+  const totalSaidas = pagamentos?.reduce((sum, pagamento) => sum + pagamento.paid_value, 0) || 0;
+  const saldoAtual = (totalCora?.total_recebido || 0) - totalSaidas;
+
   console.log('🏦 Conta Cora encontrada:', contaCora);
   console.log('📊 Total Cora:', totalCora);
-  console.log('🏦 Todas as contas:', contas);
-  console.log('📊 Todos os totais:', totaisConta);
+  console.log('💸 Total Saídas:', totalSaidas);
+  console.log('💰 Saldo Atual:', saldoAtual);
 
   const handleCreateEntry = async (data: NovaEntradaForm) => {
     try {
@@ -85,12 +103,20 @@ export default function Contas() {
     setEditingEntry(null);
   };
 
-  const clearFilters = () => {
-    setFilters({});
+  const handleCreateSaida = async (data: any) => {
+    try {
+      await createPagamento(data);
+      setIsNewSaidaOpen(false);
+      toast.success('Saída registrada com sucesso!');
+      refreshPagamentos();
+    } catch (error: any) {
+      console.error('Erro ao criar saída:', error);
+      toast.error('Não foi possível registrar a saída');
+    }
   };
 
-  const handleSaida = () => {
-    toast.info('Funcionalidade de saída será implementada em breve!');
+  const clearFilters = () => {
+    setFilters({});
   };
 
   return (
@@ -100,13 +126,34 @@ export default function Contas() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Contas</h1>
           <p className="text-muted-foreground">
-            Gerencie as entradas de dinheiro na conta Cora
+            Gerencie as entradas e saídas da conta Cora
           </p>
         </div>
-        <Button onClick={openCreateModal}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nova Entrada
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={openCreateModal}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Entrada
+          </Button>
+          <Dialog open={isNewSaidaOpen} onOpenChange={setIsNewSaidaOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <ArrowDownLeft className="mr-2 h-4 w-4" />
+                Nova Saída
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Nova Saída da Conta</DialogTitle>
+              </DialogHeader>
+              <SaidaForm
+                onSubmit={handleCreateSaida}
+                onCancel={() => setIsNewSaidaOpen(false)}
+                compras={compras || []}
+                fornecedores={fornecedores || []}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Card da Conta Cora */}
@@ -122,7 +169,7 @@ export default function Contas() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-green-100 rounded-lg">
                   <TrendingUp className="h-5 w-5 text-green-600" />
@@ -135,6 +182,18 @@ export default function Contas() {
                 </div>
               </div>
               
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <ArrowDownLeft className="h-5 w-5 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Saídas</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {formatBRL(totalSaidas)}
+                  </p>
+                </div>
+              </div>
+
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <Hash className="h-5 w-5 text-blue-600" />
@@ -153,69 +212,13 @@ export default function Contas() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Saldo Atual</p>
-                  <p className="text-2xl font-bold text-purple-600">
-                    {formatBRL(totalCora?.total_recebido || 0)}
+                  <p className={`text-2xl font-bold ${saldoAtual >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                    {formatBRL(saldoAtual)}
                   </p>
                 </div>
               </div>
             </div>
-            
-            {/* Botão de Saída */}
-            <div className="mt-6 pt-6 border-t border-blue-200">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-900">Ações da Conta</h3>
-                  <p className="text-sm text-gray-600">Gerencie as operações da conta Cora</p>
-                </div>
-                <Button 
-                  onClick={handleSaida}
-                  variant="outline" 
-                  className="border-red-200 text-red-600 hover:bg-red-50"
-                >
-                  <ArrowUpRight className="mr-2 h-4 w-4" />
-                  Saída
-                </Button>
-              </div>
-            </div>
-            
-            {/* Seção de Débitos Mensais */}
-            <div className="mt-6 pt-6 border-t border-blue-200">
-              <h3 className="text-lg font-semibold text-blue-900 mb-4">Débitos Mensais Detalhados</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-white rounded-lg p-4 border border-blue-100">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-600">Janeiro 2024</span>
-                    <Badge variant="outline" className="text-red-600 border-red-200">
-                      Débito
-                    </Badge>
-                  </div>
-                  <p className="text-lg font-bold text-red-600">-{formatBRL(2500)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Taxas e manutenção</p>
-                </div>
-                
-                <div className="bg-white rounded-lg p-4 border border-blue-100">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-600">Fevereiro 2024</span>
-                    <Badge variant="outline" className="text-red-600 border-red-200">
-                      Débito
-                    </Badge>
-                  </div>
-                  <p className="text-lg font-bold text-red-600">-{formatBRL(1800)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Transferências e taxas</p>
-                </div>
-                
-                <div className="bg-white rounded-lg p-4 border border-blue-100">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-gray-600">Março 2024</span>
-                    <Badge variant="outline" className="text-red-600 border-red-200">
-                      Débito
-                    </Badge>
-                  </div>
-                  <p className="text-lg font-bold text-red-600">-{formatBRL(3200)}</p>
-                  <p className="text-xs text-gray-500 mt-1">Operações e manutenção</p>
-                </div>
-              </div>
-            </div>
+
           </CardContent>
         </Card>
       ) : (
@@ -226,27 +229,63 @@ export default function Contas() {
         </Card>
       )}
 
-      {/* Filtros */}
-      <EntradaFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        onClearFilters={clearFilters}
-      />
+      {/* Tabs de Entradas e Saídas */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="entradas" className="flex items-center gap-2">
+            <ArrowUpRight className="h-4 w-4" />
+            Entradas ({entradas?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="saidas" className="flex items-center gap-2">
+            <ArrowDownLeft className="h-4 w-4" />
+            Saídas ({pagamentos?.length || 0})
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tabela de Entradas */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Entradas da Conta</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EntradaTable
-            entradas={entradas}
-            onEdit={openEditModal}
-            onDelete={handleDeleteEntry}
-            loading={loading}
+        <TabsContent value="entradas" className="space-y-4">
+          {/* Filtros */}
+          <EntradaFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            onClearFilters={clearFilters}
           />
-        </CardContent>
-      </Card>
+
+          {/* Tabela de Entradas */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Entradas da Conta</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <EntradaTable
+                entradas={entradas}
+                onEdit={openEditModal}
+                onDelete={handleDeleteEntry}
+                loading={loading}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="saidas" className="space-y-4">
+          {/* Tabela de Saídas */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Saídas da Conta
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SaidaTable 
+                pagamentos={pagamentos || []}
+                compras={compras || []}
+                fornecedores={fornecedores || []}
+                onRefresh={refreshPagamentos}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Modal de Entrada */}
       <EntradaModal

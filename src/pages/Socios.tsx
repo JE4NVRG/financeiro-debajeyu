@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table'
 import { ConfirmationDialog } from '../components/ui/confirmation-dialog'
 import { supabase, Socio } from '../lib/supabase'
-import { useBRLMask } from '../hooks/useBRLMask'
+import { useCurrencyMask } from '../hooks/useCurrencyMask'
+import { CurrencyInput } from '../components/ui/CurrencyInput'
 import { useToast } from '../components/ui/toast'
 
 export function Socios() {
@@ -24,7 +25,8 @@ export function Socios() {
     nome: ''
   })
   
-  const preSaldoMask = useBRLMask()
+  const [preSaldoNumerico, setPreSaldoNumerico] = useState<number>(0)
+  const currencyMask = useCurrencyMask()
   const { addToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -90,7 +92,7 @@ export function Socios() {
     setFormData({
       nome: ''
     })
-    preSaldoMask.clear()
+    setPreSaldoNumerico(0)
     setEditingSocio(null)
   }
 
@@ -106,19 +108,16 @@ export function Socios() {
     setFormData({
       nome: socio.nome
     })
-    preSaldoMask.setValue(preSaldoMask.formatInputValue(socio.pre_saldo.toString().replace('.', ',')))
+    setPreSaldoNumerico(socio.pre_saldo)
     setIsDialogOpen(true)
   }
 
   // Salvar sócio (criar ou atualizar)
   const handleSaveSocio = async () => {
     try {
-      const preSaldoValue = preSaldoMask.parseValue(preSaldoMask.value)
-
       // Debug logs
       console.log('=== DEBUG SAVE SOCIO ===')
-      console.log('preSaldoMask.value:', preSaldoMask.value)
-      console.log('preSaldoValue:', preSaldoValue)
+      console.log('preSaldoNumerico:', preSaldoNumerico)
       console.log('formData.nome:', formData.nome)
       console.log('editingSocio:', editingSocio)
 
@@ -132,12 +131,14 @@ export function Socios() {
         return
       }
 
+      const preSaldoFinal = currencyMask.ensureTwoDecimals(preSaldoNumerico)
+
       if (editingSocio) {
         // Atualizar sócio existente
         console.log('Atualizando sócio ID:', editingSocio.id)
         const updateData = {
           nome: formData.nome.trim(),
-          pre_saldo: preSaldoValue
+          pre_saldo: preSaldoFinal
         }
         console.log('Update data:', updateData)
         
@@ -162,7 +163,7 @@ export function Socios() {
         console.log('Criando novo sócio')
         const insertData = {
           nome: formData.nome.trim(),
-          pre_saldo: preSaldoValue
+          pre_saldo: preSaldoFinal
         }
         console.log('Insert data:', insertData)
         
@@ -364,10 +365,10 @@ export function Socios() {
             
             <div>
               <Label htmlFor="pre_saldo">Pré-Saldo (R$)</Label>
-              <Input
+              <CurrencyInput
                 id="pre_saldo"
-                value={preSaldoMask.value}
-                onChange={(e) => preSaldoMask.handleChange(e.target.value)}
+                value={preSaldoNumerico}
+                onChange={setPreSaldoNumerico}
                 placeholder="0,00"
               />
             </div>

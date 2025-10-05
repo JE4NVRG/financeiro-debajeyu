@@ -5,8 +5,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { supabase, Socio, Investimento } from '../lib/supabase'
 import { useToast } from '../components/ui/toast'
 import { useTotais } from '../hooks/useTotais'
+import { useFornecedores } from '../hooks/useFornecedores'
+import { useCompras } from '../hooks/useCompras'
+import { usePagamentosFornecedores } from '../hooks/usePagamentosFornecedores'
 import { formatBRL } from '../lib/utils'
-import { CreditCard, Percent } from 'lucide-react'
+import { CreditCard, Percent, Building2, AlertCircle } from 'lucide-react'
 
 interface SocioSummary {
   id: string
@@ -30,6 +33,23 @@ export function Dashboard() {
   const { addToast } = useToast()
   const navigate = useNavigate()
   const { totaisDashboard } = useTotais()
+
+  // Hooks para fornecedores
+  const { fornecedores } = useFornecedores()
+  const { compras } = useCompras()
+  const { pagamentos } = usePagamentosFornecedores()
+
+  // Calcular totais de fornecedores
+  const totaisFornecedores = {
+    totalEmAberto: (compras?.reduce((sum, compra) => sum + compra.total_value, 0) || 0) - 
+                   (pagamentos?.reduce((sum, pagamento) => sum + pagamento.paid_value, 0) || 0),
+    pagamentosDoMes: pagamentos?.filter(pagamento => {
+      const hoje = new Date()
+      const pagamentoDate = new Date(pagamento.payment_date)
+      return pagamentoDate.getMonth() === hoje.getMonth() && 
+             pagamentoDate.getFullYear() === hoje.getFullYear()
+    }).reduce((sum, pagamento) => sum + pagamento.paid_value, 0) || 0
+  }
 
 
 
@@ -252,6 +272,43 @@ export function Dashboard() {
             </div>
             <p className="text-xs text-orange-600">
               Total de comissões pagas
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Novos cards de fornecedores */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="bg-gradient-to-r from-red-50 to-pink-50 border-red-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-red-700 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              Total em Aberto (Fornecedores)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {formatBRL(totaisFornecedores.totalEmAberto)}
+            </div>
+            <p className="text-xs text-red-600">
+              Saldo pendente de pagamento
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-green-700 flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              Pagamentos do Mês
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {formatBRL(totaisFornecedores.pagamentosDoMes)}
+            </div>
+            <p className="text-xs text-green-600">
+              Pagamentos realizados este mês
             </p>
           </CardContent>
         </Card>

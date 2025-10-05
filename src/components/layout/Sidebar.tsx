@@ -33,6 +33,11 @@ const menuItems = [
     icon: Store
   },
   {
+    name: 'Fornecedores',
+    href: '/fornecedores',
+    icon: Building2
+  },
+  {
     name: 'Sócios',
     href: '/socios',
     icon: Users
@@ -65,7 +70,8 @@ export function Sidebar() {
       <nav className="flex-1 p-4 space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon
-          const isActive = location.pathname === item.href
+          const isActive = location.pathname === item.href || 
+                          (item.href === '/fornecedores' && location.pathname.startsWith('/fornecedores'))
           
           return (
             <Link

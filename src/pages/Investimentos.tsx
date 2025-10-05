@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table'
 import { ConfirmationDialog } from '../components/ui/confirmation-dialog'
 import { supabase, Investimento, Socio } from '../lib/supabase'
-import { useBRLMask } from '../hooks/useBRLMask'
+import { useCurrencyMask } from '../hooks/useCurrencyMask'
+import { CurrencyInput } from '../components/ui/CurrencyInput'
 import { useToast } from '../components/ui/toast'
 
 export function Investimentos() {
@@ -36,7 +37,8 @@ export function Investimentos() {
     socio_id: ''
   })
 
-  const valorMask = useBRLMask()
+  const [valorNumerico, setValorNumerico] = useState<number>(0)
+  const currencyMask = useCurrencyMask()
   const { addToast } = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -224,7 +226,7 @@ export function Investimentos() {
       descricao: '',
       socio_id: ''
     })
-    valorMask.clear()
+    setValorNumerico(0)
     setEditingInvestimento(null)
   }
 
@@ -242,15 +244,13 @@ export function Investimentos() {
       descricao: investimento.descricao,
       socio_id: investimento.socio_id
     })
-    valorMask.setValue(valorMask.formatInputValue(investimento.valor.toString().replace('.', ',')))
+    setValorNumerico(investimento.valor)
     setIsDialogOpen(true)
   }
 
   // Salvar investimento (criar ou atualizar)
   const handleSaveInvestimento = async () => {
     try {
-      const valorValue = valorMask.parseValue(valorMask.value)
-
       // Validação
       if (!formData.data) {
         addToast({
@@ -279,7 +279,7 @@ export function Investimentos() {
         return
       }
 
-      if (valorValue <= 0) {
+      if (valorNumerico <= 0) {
         addToast({
           type: 'error',
           title: 'Erro de validação',
@@ -287,6 +287,8 @@ export function Investimentos() {
         })
         return
       }
+
+      const valorFinal = currencyMask.ensureTwoDecimals(valorNumerico)
 
       if (editingInvestimento) {
         // Atualizar investimento existente
@@ -296,7 +298,7 @@ export function Investimentos() {
             data: formData.data,
             descricao: formData.descricao.trim(),
             socio_id: formData.socio_id,
-            valor: valorValue
+            valor: valorFinal
           })
           .eq('id', editingInvestimento.id)
 
@@ -315,7 +317,7 @@ export function Investimentos() {
             data: formData.data,
             descricao: formData.descricao.trim(),
             socio_id: formData.socio_id,
-            valor: valorValue
+            valor: valorFinal
           })
 
         if (error) throw error
@@ -652,10 +654,10 @@ export function Investimentos() {
             
             <div>
               <Label htmlFor="valor">Valor (R$)</Label>
-              <Input
+              <CurrencyInput
                 id="valor"
-                value={valorMask.value}
-                onChange={(e) => valorMask.handleChange(e.target.value)}
+                value={valorNumerico}
+                onChange={setValorNumerico}
                 placeholder="0,00"
               />
             </div>

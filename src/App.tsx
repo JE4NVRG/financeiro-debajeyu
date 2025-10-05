@@ -9,6 +9,8 @@ import { Investimentos } from './pages/Investimentos'
 import { Socios } from './pages/Socios'
 import Contas from './pages/Contas'
 import Marketplaces from './pages/Marketplaces'
+import { Fornecedores } from './pages/Fornecedores'
+import { FornecedorDetail } from './pages/FornecedorDetail'
 
 function App() {
   return (
@@ -56,6 +58,20 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Marketplaces />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/fornecedores" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Fornecedores />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/fornecedores/:id" element={
+              <ProtectedRoute>
+                <Layout>
+                  <FornecedorDetail />
                 </Layout>
               </ProtectedRoute>
             } />
