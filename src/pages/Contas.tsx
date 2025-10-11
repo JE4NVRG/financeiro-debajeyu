@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -10,13 +10,17 @@ import { EntradaFilters } from '../components/EntradaFilters';
 import { EntradaModal } from '../components/EntradaModal';
 import { SaidaForm } from '../components/fornecedores/SaidaForm';
 import { SaidaTable } from '../components/fornecedores/SaidaTable';
+import { SaidaTypeSelector, TipoSaida } from '../components/saidas/SaidaTypeSelector';
+import { AbatimentoForm } from '../components/saidas/AbatimentoForm';
+import { AbatimentoEditModal } from '../components/saidas/AbatimentoEditModal';
 import { useEntradas } from '../hooks/useEntradas';
 import { useContas } from '../hooks/useContas';
 import { useTotais } from '../hooks/useTotais';
 import { usePagamentosFornecedores } from '../hooks/usePagamentosFornecedores';
 import { useCompras } from '../hooks/useCompras';
 import { useFornecedores } from '../hooks/useFornecedores';
-import { FiltrosEntrada, NovaEntradaForm, Entrada } from '../types/database';
+import { useAbatimentos } from '../hooks/useAbatimentos';
+import { FiltrosEntrada, NovaEntradaForm, Entrada, NovoAbatimentoForm, AbatimentoComDetalhes } from '../types/database';
 import { formatBRL } from '../lib/utils';
 import { toast } from 'sonner';
 
@@ -25,7 +29,10 @@ export default function Contas() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<Entrada | null>(null);
   const [isNewSaidaOpen, setIsNewSaidaOpen] = useState(false);
+  const [tipoSaidaSelecionado, setTipoSaidaSelecionado] = useState<TipoSaida | null>(null);
   const [activeTab, setActiveTab] = useState('entradas');
+  const [editingAbatimento, setEditingAbatimento] = useState<AbatimentoComDetalhes | null>(null);
+  const [isAbatimentoEditOpen, setIsAbatimentoEditOpen] = useState(false);
 
   const { contas } = useContas();
   const { totaisConta } = useTotais();
@@ -39,16 +46,21 @@ export default function Contas() {
   } = useEntradas({ filtros: filters });
 
   // Hooks para fornecedores
-  const { pagamentos, createPagamento, refreshPagamentos } = usePagamentosFornecedores();
+  const { pagamentos, createPagamento, refetch: refreshPagamentos } = usePagamentosFornecedores();
   const { compras } = useCompras();
   const { fornecedores } = useFornecedores();
+
+  // Hook para abatimentos
+  const { abatimentos, createAbatimento, updateAbatimento, deleteAbatimento, refetch: refetchAbatimentos } = useAbatimentos();
 
   // Encontrar a conta Cora
   const contaCora = contas.find(conta => conta.nome.toLowerCase().includes('cora'));
   const totalCora = totaisConta.find(total => total.conta_id === contaCora?.id);
   
-  // Calcular totais de saídas
-  const totalSaidas = pagamentos?.reduce((sum, pagamento) => sum + pagamento.paid_value, 0) || 0;
+  // Calcular totais de saídas (pagamentos + abatimentos)
+  const totalPagamentos = pagamentos?.reduce((sum, pagamento) => sum + pagamento.paid_value, 0) || 0;
+  const totalAbatimentos = abatimentos?.reduce((sum, abatimento) => sum + abatimento.valor, 0) || 0;
+  const totalSaidas = totalPagamentos + totalAbatimentos;
   const saldoAtual = (totalCora?.total_recebido || 0) - totalSaidas;
 
   console.log('🏦 Conta Cora encontrada:', contaCora);
@@ -107,12 +119,70 @@ export default function Contas() {
     try {
       await createPagamento(data);
       setIsNewSaidaOpen(false);
+      setTipoSaidaSelecionado(null);
       toast.success('Saída registrada com sucesso!');
       refreshPagamentos();
     } catch (error: any) {
       console.error('Erro ao criar saída:', error);
       toast.error('Não foi possível registrar a saída');
     }
+  };
+
+  const handleCreateAbatimento = async (data: NovoAbatimentoForm) => {
+    try {
+      await createAbatimento(data);
+      setIsNewSaidaOpen(false);
+      setTipoSaidaSelecionado(null);
+      toast.success('Abatimento registrado com sucesso!');
+      // Refresh das saídas para incluir o novo abatimento
+      refreshPagamentos();
+      refetchAbatimentos();
+    } catch (error: any) {
+      console.error('Erro ao criar abatimento:', error);
+      toast.error('Não foi possível registrar o abatimento');
+    }
+  };
+
+  const handleEditAbatimento = (abatimento: AbatimentoComDetalhes) => {
+    setEditingAbatimento(abatimento);
+    setIsAbatimentoEditOpen(true);
+  };
+
+  const handleSaveAbatimento = async (id: string, data: { valor?: string; data_abatimento?: string; observacao?: string }) => {
+    try {
+      await updateAbatimento(id, data);
+      toast.success('Abatimento atualizado com sucesso!');
+      refetchAbatimentos();
+      setIsAbatimentoEditOpen(false);
+      setEditingAbatimento(null);
+    } catch (error) {
+      console.error('Erro ao atualizar abatimento:', error);
+      toast.error('Erro ao atualizar abatimento');
+      throw error;
+    }
+  };
+
+  const handleDeleteAbatimento = async (id: string) => {
+    console.log('🟡 HANDLE DELETE ABATIMENTO CHAMADO - ID:', id);
+    try {
+      console.log('🟡 EXECUTANDO deleteAbatimento...');
+      await deleteAbatimento(id);
+      console.log('🟡 deleteAbatimento EXECUTADO COM SUCESSO');
+      toast.success('Abatimento excluído com sucesso!');
+      refetchAbatimentos();
+    } catch (error) {
+      console.error('🟡 ERRO ao excluir abatimento:', error);
+      toast.error('Erro ao excluir abatimento');
+    }
+  };
+
+  const handleSelectTipoSaida = (tipo: TipoSaida) => {
+    setTipoSaidaSelecionado(tipo);
+  };
+
+  const handleCancelSaida = () => {
+    setIsNewSaidaOpen(false);
+    setTipoSaidaSelecionado(null);
   };
 
   const clearFilters = () => {
@@ -141,16 +211,44 @@ export default function Contas() {
                 Nova Saída
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Nova Saída da Conta</DialogTitle>
+                <DialogTitle>
+                  {!tipoSaidaSelecionado ? 'Nova Saída da Conta' : 
+                   tipoSaidaSelecionado === 'fornecedor' ? 'Pagamento a Fornecedor' :
+                   tipoSaidaSelecionado === 'abatimento_pre_saldo' ? 'Abatimento Pré-Saldo' :
+                   tipoSaidaSelecionado === 'operacional' ? 'Despesa Operacional' :
+                   'Movimentação Financeira'}
+                </DialogTitle>
               </DialogHeader>
-              <SaidaForm
-                onSubmit={handleCreateSaida}
-                onCancel={() => setIsNewSaidaOpen(false)}
-                compras={compras || []}
-                fornecedores={fornecedores || []}
-              />
+              
+              {!tipoSaidaSelecionado ? (
+                <SaidaTypeSelector
+                  onSelectType={handleSelectTipoSaida}
+                  onCancel={handleCancelSaida}
+                />
+              ) : tipoSaidaSelecionado === 'fornecedor' ? (
+                <SaidaForm
+                  onSubmit={handleCreateSaida}
+                  onCancel={handleCancelSaida}
+                  compras={compras || []}
+                  fornecedores={fornecedores || []}
+                />
+              ) : tipoSaidaSelecionado === 'abatimento_pre_saldo' ? (
+                <AbatimentoForm
+                  onSubmit={handleCreateAbatimento}
+                  onCancel={handleCancelSaida}
+                />
+              ) : (
+                <div className="p-4 text-center">
+                  <p className="text-muted-foreground mb-4">
+                    Este tipo de saída ainda não foi implementado.
+                  </p>
+                  <Button variant="outline" onClick={handleCancelSaida}>
+                    Voltar
+                  </Button>
+                </div>
+              )}
             </DialogContent>
           </Dialog>
         </div>
@@ -238,7 +336,7 @@ export default function Contas() {
           </TabsTrigger>
           <TabsTrigger value="saidas" className="flex items-center gap-2">
             <ArrowDownLeft className="h-4 w-4" />
-            Saídas ({pagamentos?.length || 0})
+            Saídas ({(pagamentos?.length || 0) + (abatimentos?.length || 0)})
           </TabsTrigger>
         </TabsList>
 
@@ -278,9 +376,12 @@ export default function Contas() {
             <CardContent>
               <SaidaTable 
                 pagamentos={pagamentos || []}
+                abatimentos={abatimentos || []}
                 compras={compras || []}
                 fornecedores={fornecedores || []}
                 onRefresh={refreshPagamentos}
+                onEditAbatimento={handleEditAbatimento}
+                onDeleteAbatimento={handleDeleteAbatimento}
               />
             </CardContent>
           </Card>
@@ -293,6 +394,27 @@ export default function Contas() {
         onClose={closeModal}
         onSubmit={editingEntry ? handleEditEntry : handleCreateEntry}
         editingEntry={editingEntry}
+        loading={loading}
+      />
+
+      {/* Modal de Entrada */}
+      <EntradaModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSubmit={editingEntry ? handleEditEntry : handleCreateEntry}
+        editingEntry={editingEntry}
+        loading={loading}
+      />
+
+      {/* Modal de Abatimento Edit */}
+      <AbatimentoEditModal
+        abatimento={editingAbatimento}
+        isOpen={isAbatimentoEditOpen}
+        onClose={() => {
+          setIsAbatimentoEditOpen(false);
+          setEditingAbatimento(null);
+        }}
+        onSave={handleSaveAbatimento}
         loading={loading}
       />
     </div>

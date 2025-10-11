@@ -284,3 +284,79 @@ export interface UsePagamentosFornecedoresReturn {
   createSaida: (saida: NovaSaidaForm) => Promise<void>;
   deletePagamento: (id: string) => Promise<void>;
 }
+
+
+// Tipos para Sócios
+export interface Socio {
+  id: string;
+  nome: string;
+  pre_saldo: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Tipos para Abatimentos de Pré-Saldo
+export interface AbatimentoPreSaldo {
+  id: string;
+  socio_id: string;
+  conta_id: string;
+  usuario_id: string;
+  valor: number;
+  saldo_anterior: number;
+  saldo_posterior: number;
+  data_abatimento: string; // YYYY-MM-DD
+  observacao?: string;
+  created_at: string;
+}
+
+export interface AbatimentoComDetalhes extends AbatimentoPreSaldo {
+  socio: {
+    nome: string;
+  };
+  conta: {
+    nome: string;
+  };
+  usuario: {
+    login: string;
+  };
+}
+
+// Tipos para formulários de abatimento
+export interface NovoAbatimentoForm {
+  socio_id: string;
+  conta_id: string;
+  valor: string; // String para máscara BRL
+  data_abatimento: string;
+  observacao?: string;
+}
+
+// Tipos para filtros de abatimento
+export interface FiltrosAbatimento {
+  socio_id?: string;
+  data_inicio?: string;
+  data_fim?: string;
+  valor_min?: string;
+  valor_max?: string;
+  busca?: string;
+}
+
+// Hook interface for Abatimentos
+export interface UseAbatimentosReturn {
+  abatimentos: AbatimentoComDetalhes[];
+  loading: boolean;
+  error: Error | null;
+  refetch: () => void;
+  createAbatimento: (abatimento: NovoAbatimentoForm) => Promise<void>;
+  updateAbatimento: (id: string, abatimento: Partial<NovoAbatimentoForm>) => Promise<void>;
+  deleteAbatimento: (id: string) => Promise<void>;
+}
+
+// Hook interface for Socios
+export interface UseSociosReturn {
+  socios: Socio[];
+  loading: boolean;
+  error: Error | null;
+  refetch: () => void;
+  getSocioById: (id: string) => Socio | undefined;
+  updateSocio: (id: string, socio: Partial<Socio>) => Promise<void>;
+}
