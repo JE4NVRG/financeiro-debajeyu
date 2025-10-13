@@ -119,13 +119,12 @@ export function Sidebar() {
                   <AvatarImage src={userProfile?.avatar_url} />
                   <AvatarFallback className="bg-blue-100 text-blue-700 text-sm">
                     {userProfile?.full_name ? getInitials(userProfile.full_name) : 
-                     user?.login ? getInitials(user.login) : 
-                     user?.email?.charAt(0).toUpperCase() || 'U'}
+                     user?.login ? getInitials(user.login) : 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium text-gray-900 truncate">
-                    {userProfile?.full_name || user?.login || user?.email || 'Usuário'}
+                    {userProfile?.full_name || user?.login || 'Usuário'}
                   </p>
                   <p className="text-xs text-gray-500 truncate">
                     {userProfile?.role === 'admin' ? 'Administrador' : 

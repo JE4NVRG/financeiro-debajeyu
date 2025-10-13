@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (userProfile.role === 'admin') return true
     
     // Verificar nas permissões específicas
-    return userPermissions.some(p => p.permission_name === permission && p.is_active)
+    return userPermissions.some(p => p.module_name === permission && p.is_active)
   }
 
   // Verificar se o usuário tem um papel específico

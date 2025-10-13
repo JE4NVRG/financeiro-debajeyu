@@ -274,12 +274,7 @@ export interface UseComprasReturn {
   deleteCompra: (id: string) => Promise<void>;
 }
 
-// Adicionar AuthUser interface
-export interface AuthUser {
-  id: string;
-  email?: string;
-  login?: string;
-}
+
 
 export interface UsePagamentosFornecedoresReturn {
   pagamentos: PagamentoComDetalhes[];
@@ -443,6 +438,15 @@ export interface UserProfile {
   socio_nome?: string;
   email?: string;
   auth_created_at?: string;
+  
+  // Relacionamentos com objetos completos
+  socios?: {
+    id: string;
+    nome: string;
+  };
+  usuarios?: {
+    login: string;
+  };
 }
 
 export interface UserPermission {
@@ -515,7 +519,8 @@ export interface UserProfileWithPermissions {
 // Tipos para contexto de autenticação expandido
 export interface AuthUser {
   id: string;
-  email: string;
+  email?: string;
+  login?: string;
   profile?: UserProfile;
   permissions?: UserPermission[];
 }

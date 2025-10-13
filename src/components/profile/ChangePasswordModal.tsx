@@ -15,8 +15,9 @@ interface ChangePasswordModalProps {
 
 export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
   const [formData, setFormData] = useState<ChangePasswordForm>({
-    newPassword: '',
-    confirmPassword: ''
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
   });
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -28,8 +29,9 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
   // Limpar formulário ao fechar
   const handleClose = () => {
     setFormData({
-      newPassword: '',
-      confirmPassword: ''
+      current_password: '',
+      new_password: '',
+      confirm_password: ''
     });
     setShowNewPassword(false);
     setShowConfirmPassword(false);
@@ -55,7 +57,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
     };
   };
 
-  const passwordValidation = validatePasswordStrength(formData.newPassword);
+  const passwordValidation = validatePasswordStrength(formData.new_password);
 
   // Alterar senha
   const handleChangePassword = async () => {
@@ -63,7 +65,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
       setIsSubmitting(true);
 
       // Validações
-      if (!formData.newPassword.trim()) {
+      if (!formData.new_password.trim()) {
         toast({
           title: 'Erro de validação',
           description: 'Nova senha é obrigatória'
@@ -71,7 +73,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
         return;
       }
 
-      if (formData.newPassword.length < 6) {
+      if (formData.new_password.length < 6) {
         toast({
           title: 'Erro de validação',
           description: 'A senha deve ter pelo menos 6 caracteres'
@@ -79,7 +81,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
         return;
       }
 
-      if (formData.newPassword !== formData.confirmPassword) {
+      if (formData.new_password !== formData.confirm_password) {
         toast({
           title: 'Erro de validação',
           description: 'As senhas não coincidem'
@@ -95,7 +97,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
         return;
       }
 
-      await changePassword(formData.newPassword);
+      await changePassword(formData.new_password);
 
       toast({
         title: 'Sucesso',
@@ -134,8 +136,9 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
     const shuffled = password.split('').sort(() => Math.random() - 0.5).join('');
     
     setFormData({
-      newPassword: shuffled,
-      confirmPassword: shuffled
+      ...formData,
+      new_password: shuffled,
+      confirm_password: shuffled
     });
   };
 
@@ -175,8 +178,8 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
               <Input
                 id="newPassword"
                 type={showNewPassword ? "text" : "password"}
-                value={formData.newPassword}
-                onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                value={formData.new_password}
+                onChange={(e) => setFormData({ ...formData, new_password: e.target.value })}
                 placeholder="Digite sua nova senha"
                 disabled={isSubmitting}
               />
@@ -192,7 +195,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
             </div>
             
             {/* Indicador de força da senha */}
-            {formData.newPassword && (
+            {formData.new_password && (
               <div className="mt-2 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Força da senha:</span>
@@ -246,8 +249,8 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                value={formData.confirm_password}
+                onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
                 placeholder="Confirme sua nova senha"
                 disabled={isSubmitting}
               />
@@ -263,9 +266,9 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
             </div>
             
             {/* Validação de confirmação */}
-            {formData.confirmPassword && (
-              <div className="mt-1">
-                {formData.newPassword === formData.confirmPassword ? (
+            {formData.confirm_password && (
+                  <div className="mt-1 text-sm">
+                    {formData.new_password === formData.confirm_password ? (
                   <p className="text-xs text-green-600 flex items-center gap-1">
                     <CheckCircle className="h-3 w-3" />
                     As senhas coincidem
@@ -318,7 +321,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
           </Button>
           <Button 
             onClick={handleChangePassword}
-            disabled={isSubmitting || passwordValidation.strength === 'weak' || formData.newPassword !== formData.confirmPassword}
+            disabled={isSubmitting || passwordValidation.strength === 'weak' || formData.new_password !== formData.confirm_password}
             className="bg-purple-600 hover:bg-purple-700"
           >
             {isSubmitting ? (
