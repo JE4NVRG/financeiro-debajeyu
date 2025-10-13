@@ -119,6 +119,8 @@ export function useCurrencyMask() {
     getCanonicalValue,
     isValid,
     sanitizeInput,
-    ensureTwoDecimals
+    ensureTwoDecimals,
+    formatValue: formatBRL,
+    parseValue: parseToCanonical
   }
 }

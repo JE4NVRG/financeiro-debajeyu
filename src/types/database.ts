@@ -366,6 +366,8 @@ export interface UseSociosReturn {
   refetch: () => void;
   getSocioById: (id: string) => Socio | undefined;
   updateSocio: (id: string, socio: Partial<Socio>) => Promise<void>;
+  createSocio: (socio: Omit<Socio, 'id' | 'created_at' | 'updated_at'>) => Promise<Socio>;
+  deleteSocio: (id: string) => Promise<void>;
 }
 
 // Novos tipos para pagamento otimizado

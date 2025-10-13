@@ -11,7 +11,7 @@ import { Plus, Edit, Trash2, Users, DollarSign, History, TrendingUp } from 'luci
 import { useSocios } from '../hooks/useSocios';
 import { useAbatimentos } from '../hooks/useAbatimentos';
 import { HistoricoAbatimentos } from '../components/socios/HistoricoAbatimentos';
-import { Socio, NovoSocioForm } from '../types/database';
+import { Socio } from '../types/database';
 import { formatBRL } from '../lib/utils';
 import { useCurrencyMask } from '../hooks/useCurrencyMask';
 import { useToast } from '../hooks/use-toast';
@@ -22,7 +22,7 @@ export function Socios() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isHistoricoModalOpen, setIsHistoricoModalOpen] = useState(false);
   const [selectedSocio, setSelectedSocio] = useState<Socio | null>(null);
-  const [formData, setFormData] = useState<NovoSocioForm>({
+  const [formData, setFormData] = useState<{nome: string; pre_saldo: number}>({
     nome: '',
     pre_saldo: 0
   });
@@ -69,8 +69,7 @@ export function Socios() {
       if (!formData.nome.trim()) {
         toast({
           title: 'Erro de validação',
-          description: 'Nome é obrigatório',
-          variant: 'destructive'
+          description: 'Nome é obrigatório'
         });
         return;
       }
@@ -100,8 +99,7 @@ export function Socios() {
       console.error('Erro ao salvar sócio:', error);
       toast({
         title: 'Erro',
-        description: error.message || 'Erro ao salvar sócio',
-        variant: 'destructive'
+        description: error.message || 'Erro ao salvar sócio'
       });
     }
   };
@@ -130,8 +128,7 @@ export function Socios() {
       console.error('Erro ao excluir sócio:', error);
       toast({
         title: 'Erro',
-        description: error.message || 'Erro ao excluir sócio',
-        variant: 'destructive'
+        description: error.message || 'Erro ao excluir sócio'
       });
     }
   };
@@ -150,7 +147,7 @@ export function Socios() {
   if (error) {
     return (
       <div className="text-center text-red-600">
-        Erro ao carregar sócios: {error}
+        Erro ao carregar sócios: {error?.message || 'Erro desconhecido'}
       </div>
     );
   }

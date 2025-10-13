@@ -60,6 +60,52 @@ export function useSocios(): UseSociosReturn {
     }
   };
 
+  const createSocio = async (socioData: Omit<Socio, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      setError(null);
+
+      const { data, error: createError } = await supabase
+        .from('socios')
+        .insert([socioData])
+        .select()
+        .single();
+
+      if (createError) {
+        throw new Error(`Erro ao criar sócio: ${createError.message}`);
+      }
+
+      // Atualizar o estado local
+      setSocios(prevSocios => [...prevSocios, data]);
+      return data;
+    } catch (err) {
+      console.error('Erro ao criar sócio:', err);
+      setError(err instanceof Error ? err : new Error('Erro desconhecido'));
+      throw err;
+    }
+  };
+
+  const deleteSocio = async (id: string) => {
+    try {
+      setError(null);
+
+      const { error: deleteError } = await supabase
+        .from('socios')
+        .delete()
+        .eq('id', id);
+
+      if (deleteError) {
+        throw new Error(`Erro ao deletar sócio: ${deleteError.message}`);
+      }
+
+      // Atualizar o estado local
+      setSocios(prevSocios => prevSocios.filter(socio => socio.id !== id));
+    } catch (err) {
+      console.error('Erro ao deletar sócio:', err);
+      setError(err instanceof Error ? err : new Error('Erro desconhecido'));
+      throw err;
+    }
+  };
+
   const refetch = () => {
     fetchSocios();
   };
@@ -75,5 +121,7 @@ export function useSocios(): UseSociosReturn {
     refetch,
     getSocioById,
     updateSocio,
+    createSocio,
+    deleteSocio,
   };
 }
