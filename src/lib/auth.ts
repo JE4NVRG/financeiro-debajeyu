@@ -90,6 +90,45 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
     // Gerar token simples
     const token = generateSimpleToken(user)
 
+    // Criar sessão Supabase para permitir alteração de senha
+    try {
+      // Usar o email como login para o Supabase Auth (necessário para auth)
+      const email = `${usuarios.login}@sistema.local`
+      
+      // Tentar fazer login no Supabase Auth
+      const { data: authData, error: authError } = await supabaseAuth.auth.signInWithPassword({
+        email: email,
+        password: credentials.senha
+      })
+
+      if (authError) {
+        console.log('⚠️ Usuário não existe no Supabase Auth, criando...')
+        
+        // Se não existe, criar usuário no Supabase Auth
+        const { data: signUpData, error: signUpError } = await supabaseAuth.auth.signUp({
+          email: email,
+          password: credentials.senha,
+          options: {
+            data: {
+              user_id: usuarios.id,
+              login: usuarios.login
+            }
+          }
+        })
+
+        if (signUpError) {
+          console.error('Erro ao criar usuário no Supabase Auth:', signUpError)
+        } else {
+          console.log('✅ Usuário criado no Supabase Auth:', signUpData.user?.id)
+        }
+      } else {
+        console.log('✅ Login no Supabase Auth realizado:', authData.user?.id)
+      }
+    } catch (authError) {
+      console.error('Erro na autenticação Supabase:', authError)
+      // Não falhar o login principal por causa disso
+    }
+
     return {
       success: true,
       token,

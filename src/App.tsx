@@ -12,6 +12,7 @@ import Marketplaces from './pages/Marketplaces'
 import { Fornecedores } from './pages/Fornecedores'
 import { FornecedorDetail } from './pages/FornecedorDetail'
 import Compras from './pages/Compras'
+import { Profile } from './pages/Profile'
 
 function App() {
   return (
@@ -80,6 +81,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Compras />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Profile />
                 </Layout>
               </ProtectedRoute>
             } />

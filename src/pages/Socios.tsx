@@ -7,10 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/ui/alert-dialog';
-import { Plus, Edit, Trash2, Users, DollarSign, History, TrendingUp } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, DollarSign, History, TrendingUp, UserPlus } from 'lucide-react';
 import { useSocios } from '../hooks/useSocios';
 import { useAbatimentos } from '../hooks/useAbatimentos';
 import { HistoricoAbatimentos } from '../components/socios/HistoricoAbatimentos';
+import { UserManagementSection } from '../components/socios/UserManagementSection';
 import { Socio } from '../types/database';
 import { formatBRL } from '../lib/utils';
 import { useCurrencyMask } from '../hooks/useCurrencyMask';
@@ -21,6 +22,7 @@ export function Socios() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isHistoricoModalOpen, setIsHistoricoModalOpen] = useState(false);
+  const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const [selectedSocio, setSelectedSocio] = useState<Socio | null>(null);
   const [formData, setFormData] = useState<{nome: string; pre_saldo: number}>({
     nome: '',
@@ -61,6 +63,12 @@ export function Socios() {
   const handleViewHistory = (socio: Socio) => {
     setSelectedSocio(socio);
     setIsHistoricoModalOpen(true);
+  };
+
+  // Abrir gestão de usuários
+  const handleUserManagement = (socio: Socio) => {
+    setSelectedSocio(socio);
+    setIsUserManagementOpen(true);
   };
 
   // Salvar sócio (criar ou atualizar)
@@ -158,7 +166,7 @@ export function Socios() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Sócios</h1>
           <p className="text-muted-foreground">
-            Gerencie os sócios e seus pré-saldos
+            Gerencie os sócios, seus pré-saldos e usuários de acesso
           </p>
         </div>
         <Button onClick={handleNewSocio}>
@@ -220,6 +228,7 @@ export function Socios() {
                     <TableHead>Nome</TableHead>
                     <TableHead>Pré-Saldo</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Usuário</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -240,8 +249,22 @@ export function Socios() {
                           {socio.pre_saldo > 0 ? "Com Saldo" : "Sem Saldo"}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          Sem usuário
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleUserManagement(socio)}
+                            title="Gerenciar usuário"
+                            className="bg-purple-50 border-purple-200 hover:bg-purple-100 text-purple-700"
+                          >
+                            <UserPlus className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"
@@ -388,6 +411,60 @@ export function Socios() {
         onClose={() => setIsHistoricoModalOpen(false)}
         socioId={selectedSocio?.id}
         socioNome={selectedSocio?.nome}
+      />
+
+      {/* Seção de Usuários do Sistema */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5" />
+            Usuários do Sistema
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Usuário atual logado */}
+            <div className="border rounded-lg p-4 bg-green-50 border-green-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <UserPlus className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-green-900">je4ndev</h3>
+                    <p className="text-sm text-green-700">Administrador do Sistema</p>
+                    <p className="text-xs text-green-600">je4ndev@debajeyu.com</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-green-100 text-green-800 border-green-300">
+                    Ativo
+                  </Badge>
+                  <Badge variant="outline" className="text-green-700 border-green-300">
+                    Admin
+                  </Badge>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    Online
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            {/* Placeholder para outros usuários */}
+            <div className="text-center py-6 text-muted-foreground">
+              <UserPlus className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Outros usuários aparecerão aqui quando forem criados</p>
+              <p className="text-xs mt-1">Use o botão "Gerenciar usuário" em cada sócio para criar novos usuários</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Modal de gestão de usuários */}
+      <UserManagementSection
+        isOpen={isUserManagementOpen}
+        onClose={() => setIsUserManagementOpen(false)}
+        socio={selectedSocio}
       />
     </div>
   )

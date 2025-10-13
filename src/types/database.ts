@@ -423,3 +423,113 @@ export interface UsePagamentoParcialReturn {
   loading: boolean;
   error: Error | null;
 }
+
+
+// Tipos para Sistema de Gestão de Usuários dos Sócios
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  socio_id: string;
+  full_name: string;
+  phone?: string;
+  avatar_url?: string;
+  role: 'admin' | 'socio' | 'socio_limitado';
+  is_active: boolean;
+  preferences: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  
+  // Relacionamentos (quando incluídos na query)
+  socio_nome?: string;
+  email?: string;
+  auth_created_at?: string;
+}
+
+export interface UserPermission {
+  id: string;
+  user_profile_id: string;
+  module_name: string;
+  permissions: {
+    read: boolean;
+    write: boolean;
+    delete: boolean;
+  };
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ProfileImage {
+  id: string;
+  user_profile_id: string;
+  file_path: string;
+  file_name: string;
+  file_size?: number;
+  mime_type?: string;
+  uploaded_at: string;
+}
+
+export interface UserManagementView {
+  profile_id: string;
+  user_id: string;
+  socio_id: string;
+  full_name: string;
+  phone?: string;
+  avatar_url?: string;
+  role: 'admin' | 'socio' | 'socio_limitado';
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  socio_nome?: string;
+  email?: string;
+  auth_created_at?: string;
+  permissions_count: number;
+}
+
+// Tipos para formulários de usuários
+export interface CreateUserForm {
+  socio_id: string;
+  username: string; // Mudança: username ao invés de email
+  password: string;
+  confirm_password: string; // Novo campo para confirmação
+  full_name: string;
+  role: 'socio' | 'socio_limitado';
+}
+
+export interface UpdateProfileForm {
+  full_name: string;
+  phone?: string;
+  preferences?: Record<string, any>;
+}
+
+export interface ChangePasswordForm {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}
+
+export interface UserProfileWithPermissions {
+  profile: UserProfile;
+  permissions: UserPermission[];
+}
+
+// Tipos para contexto de autenticação expandido
+export interface AuthUser {
+  id: string;
+  email: string;
+  profile?: UserProfile;
+  permissions?: UserPermission[];
+}
+
+export interface AuthContextType {
+  user: AuthUser | null;
+  profile: UserProfile | null;
+  permissions: UserPermission[];
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  updateProfile: (data: UpdateProfileForm) => Promise<void>;
+  changePassword: (data: ChangePasswordForm) => Promise<void>;
+  uploadAvatar: (file: File) => Promise<string>;
+  hasPermission: (module: string, action: 'read' | 'write' | 'delete') => boolean;
+  isAdmin: () => boolean;
+}
