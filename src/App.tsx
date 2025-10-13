@@ -11,6 +11,7 @@ import Contas from './pages/Contas'
 import Marketplaces from './pages/Marketplaces'
 import { Fornecedores } from './pages/Fornecedores'
 import { FornecedorDetail } from './pages/FornecedorDetail'
+import Compras from './pages/Compras'
 
 function App() {
   return (
@@ -72,6 +73,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <FornecedorDetail />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/compras" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Compras />
                 </Layout>
               </ProtectedRoute>
             } />

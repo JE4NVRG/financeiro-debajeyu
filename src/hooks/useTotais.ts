@@ -90,14 +90,21 @@ export function useTotais(): UseTotaisReturn {
 
       setTotaisMarketplace(Array.from(totaisMarketplaceMap.values()));
 
+      // Buscar informações completas da conta Cora usando função SQL
+      const { data: coraInfo, error: coraError } = await supabase
+        .rpc('get_conta_cora_info');
+
+      if (coraError) {
+        console.error('Erro ao buscar informações da conta Cora:', coraError);
+      }
+
       // Calcular totais do dashboard
-      const totalCora = entradas.reduce((sum, entrada) => sum + entrada.valor, 0);
       const totalComissao = entradas.reduce((sum, entrada) => {
         return entrada.comissao_paga ? sum + (entrada.valor * 0.04) : sum;
       }, 0);
 
       setTotaisDashboard({
-        total_cora: totalCora,
+        total_cora: coraInfo?.saldo_atual || 0, // Voltar a usar saldo_atual como estava funcionando
         total_comissao: totalComissao,
         total_aberto_fornecedores: 0,
         pagamentos_mes: 0

@@ -32,7 +32,7 @@ export function Dashboard() {
   
   const { addToast } = useToast()
   const navigate = useNavigate()
-  const { totaisDashboard } = useTotais()
+  const { totaisDashboard, refetch: refetchTotais } = useTotais()
 
   // Hooks para fornecedores
   const { fornecedores } = useFornecedores()
@@ -41,8 +41,10 @@ export function Dashboard() {
 
   // Calcular totais de fornecedores
   const totaisFornecedores = {
-    totalEmAberto: (compras?.reduce((sum, compra) => sum + compra.valor_total, 0) || 0) - 
-                   (pagamentos?.reduce((sum, pagamento) => sum + pagamento.valor_pago, 0) || 0),
+    totalEmAberto: compras?.reduce((sum, compra) => {
+      // Usar saldo_aberto se disponível, senão calcular
+      return sum + (compra.saldo_aberto ?? (compra.valor_total - (compra.valor_pago || 0)))
+    }, 0) || 0,
     pagamentosDoMes: pagamentos?.filter(pagamento => {
       const hoje = new Date()
       const pagamentoDate = new Date(pagamento.data_pagamento)
@@ -176,6 +178,8 @@ export function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData()
+    // Forçar atualização dos totais quando o componente montar
+    refetchTotais()
   }, [])
 
   if (loading) {
@@ -246,7 +250,7 @@ export function Dashboard() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-700 flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
-              Total enviado ao Cora
+              Saldo Disponível Cora
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -254,7 +258,7 @@ export function Dashboard() {
               {formatBRL(totaisDashboard.total_cora)}
             </div>
             <p className="text-xs text-blue-600">
-              Entradas na conta Cora
+              Saldo atual da conta Cora
             </p>
           </CardContent>
         </Card>

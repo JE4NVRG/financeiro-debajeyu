@@ -206,16 +206,16 @@ export function SaidaForm({
         <div className="space-y-2">
           <Label htmlFor="compra">Compra Específica (opcional)</Label>
           <Select
-            value={formData.compra_id || ''}
+            value={formData.compra_id || 'avulso'}
             onValueChange={(value) => {
-              setFormData(prev => ({ ...prev, compra_id: value || null }));
+              setFormData(prev => ({ ...prev, compra_id: value === 'avulso' ? null : value }));
             }}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione uma compra ou deixe em branco para pagamento avulso" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Pagamento avulso (nova compra)</SelectItem>
+              <SelectItem value="avulso">Pagamento avulso (nova compra)</SelectItem>
               {comprasEmAberto.map((compra) => (
                 <SelectItem key={compra.id} value={compra.id}>
                   {compra.descricao} - {formatBRL(compra.saldo_aberto)} em aberto

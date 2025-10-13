@@ -6,7 +6,8 @@ import {
   LogOut,
   Building2,
   CreditCard,
-  Store
+  Store,
+  ShoppingCart
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { Button } from '../ui/button'
@@ -36,6 +37,11 @@ const menuItems = [
     name: 'Fornecedores',
     href: '/fornecedores',
     icon: Building2
+  },
+  {
+    name: 'Compras',
+    href: '/compras',
+    icon: ShoppingCart
   },
   {
     name: 'Sócios',

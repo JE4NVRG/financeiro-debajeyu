@@ -118,6 +118,16 @@ export function Fornecedores() {
     navigate(`/fornecedores/${fornecedor.id}`)
   }
 
+  const handlePaymentSuccess = () => {
+    // Refresh data after successful payment
+    refreshFornecedores()
+    addToast({
+      type: 'success',
+      title: 'Pagamento Realizado',
+      description: 'Pagamento processado com sucesso!'
+    })
+  }
+
   const loading = fornecedoresLoading || comprasLoading || pagamentosLoading
 
   if (loading) {
@@ -286,6 +296,7 @@ export function Fornecedores() {
             onEdit={handleEditFornecedor}
             onDelete={handleDeleteFornecedor}
             onView={handleViewFornecedor}
+            onPaymentSuccess={handlePaymentSuccess}
           />
         </CardContent>
       </Card>

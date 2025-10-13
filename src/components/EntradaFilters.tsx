@@ -24,10 +24,10 @@ export function EntradaFilters({ filters, onFiltersChange, onClearFilters }: Ent
     value !== undefined && value !== '' && value !== null
   );
 
-  const updateFilter = (key: keyof FiltrosEntrada, value: any) => {
+  const updateFilter = (key: keyof FiltrosEntrada, value: string) => {
     onFiltersChange({
       ...filters,
-      [key]: value === '' ? undefined : value
+      [key]: value === '' || value === 'all' ? undefined : value
     });
   };
 
@@ -95,7 +95,7 @@ export function EntradaFilters({ filters, onFiltersChange, onClearFilters }: Ent
                   <SelectValue placeholder="Todas as contas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as contas</SelectItem>
+                  <SelectItem value="all">Todas as contas</SelectItem>
                   {contas.map((conta) => (
                     <SelectItem key={conta.id} value={conta.id}>
                       {conta.nome}
@@ -115,7 +115,7 @@ export function EntradaFilters({ filters, onFiltersChange, onClearFilters }: Ent
                   <SelectValue placeholder="Todos os marketplaces" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os marketplaces</SelectItem>
+                  <SelectItem value="all">Todos os marketplaces</SelectItem>
                   {marketplaces.map((marketplace) => (
                     <SelectItem key={marketplace.id} value={marketplace.id}>
                       {marketplace.nome}
@@ -161,7 +161,7 @@ export function EntradaFilters({ filters, onFiltersChange, onClearFilters }: Ent
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="true">Com comissão</SelectItem>
                   <SelectItem value="false">Sem comissão</SelectItem>
                 </SelectContent>

@@ -9,7 +9,9 @@ import { useToast } from '../ui/toast';
 interface Fornecedor {
   id?: string;
   nome: string;
-  tipo?: 'Fornecedor' | 'Prestador de Serviço';
+  tipo?: 'Camisa' | 'Gráfica' | 'Outros';
+  status?: 'Ativo' | 'Inativo';
+  observacao?: string;
 }
 
 interface FornecedorFormProps {
@@ -23,7 +25,9 @@ export function FornecedorForm({ fornecedor, onSubmit, onCancel, loading = false
   const { addToast } = useToast();
   const [formData, setFormData] = useState<Omit<Fornecedor, 'id'>>({
     nome: fornecedor?.nome || '',
-    tipo: fornecedor?.tipo || 'Fornecedor'
+    tipo: fornecedor?.tipo || 'Camisa',
+    status: fornecedor?.status || 'Ativo',
+    observacao: fornecedor?.observacao || ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,19 +83,47 @@ export function FornecedorForm({ fornecedor, onSubmit, onCancel, loading = false
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="tipo">Tipo</Label>
+            <Label htmlFor="tipo">Tipo *</Label>
             <Select
               value={formData.tipo}
-              onValueChange={(value) => handleChange('tipo', value as 'Fornecedor' | 'Prestador de Serviço')}
+              onValueChange={(value) => handleChange('tipo', value as 'Camisa' | 'Gráfica' | 'Outros')}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Fornecedor">Fornecedor</SelectItem>
-                <SelectItem value="Prestador de Serviço">Prestador de Serviço</SelectItem>
+                <SelectItem value="Camisa">Camisa</SelectItem>
+                <SelectItem value="Gráfica">Gráfica</SelectItem>
+                <SelectItem value="Outros">Outros</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Status *</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value) => handleChange('status', value as 'Ativo' | 'Inativo')}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Ativo">Ativo</SelectItem>
+                <SelectItem value="Inativo">Inativo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="observacao">Observação</Label>
+            <Input
+              id="observacao"
+              value={formData.observacao}
+              onChange={(e) => handleChange('observacao', e.target.value)}
+              placeholder="Observações sobre o fornecedor (opcional)"
+              maxLength={500}
+            />
           </div>
 
           <div className="flex gap-2 justify-end">

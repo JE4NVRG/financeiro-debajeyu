@@ -20,6 +20,7 @@ import { usePagamentosFornecedores } from '../hooks/usePagamentosFornecedores';
 import { useCompras } from '../hooks/useCompras';
 import { useFornecedores } from '../hooks/useFornecedores';
 import { useAbatimentos } from '../hooks/useAbatimentos';
+import { useRealtimeUpdates } from '../hooks/useRealtimeUpdates';
 import { FiltrosEntrada, NovaEntradaForm, Entrada, NovoAbatimentoForm, AbatimentoComDetalhes } from '../types/database';
 import { formatBRL } from '../lib/utils';
 import { toast } from 'sonner';
@@ -35,7 +36,7 @@ export default function Contas() {
   const [isAbatimentoEditOpen, setIsAbatimentoEditOpen] = useState(false);
 
   const { contas } = useContas();
-  const { totaisConta } = useTotais();
+  const { totaisConta, refetch: refetchTotais } = useTotais();
   const { 
     entradas, 
     loading, 
@@ -46,12 +47,29 @@ export default function Contas() {
   } = useEntradas({ filtros: filters });
 
   // Hooks para fornecedores
-  const { pagamentos, createPagamento, refetch: refreshPagamentos } = usePagamentosFornecedores();
+  const { pagamentos, createPagamento, createSaida, refetch: refreshPagamentos } = usePagamentosFornecedores();
   const { compras } = useCompras();
   const { fornecedores } = useFornecedores();
 
   // Hook para abatimentos
   const { abatimentos, createAbatimento, updateAbatimento, deleteAbatimento, refetch: refetchAbatimentos } = useAbatimentos();
+
+  // Hook para atualizações em tempo real
+  useRealtimeUpdates({
+    onEntradasChange: () => {
+      refetch();
+      refetchTotais();
+    },
+    onPagamentosChange: () => {
+      refreshPagamentos();
+      refetchTotais();
+    },
+    onAbatimentosChange: () => {
+      refetchAbatimentos();
+      refetchTotais();
+    },
+    onTotaisChange: refetchTotais
+  });
 
   // Encontrar a conta Cora
   const contaCora = contas.find(conta => conta.nome.toLowerCase().includes('cora'));
@@ -73,6 +91,8 @@ export default function Contas() {
       await createEntrada(data);
       setIsModalOpen(false);
       toast.success('Entrada criada com sucesso!');
+      // Atualizar totais após criar entrada
+      refetchTotais();
     } catch (error) {
       toast.error('Erro ao criar entrada');
     }
@@ -86,6 +106,8 @@ export default function Contas() {
       setEditingEntry(null);
       setIsModalOpen(false);
       toast.success('Entrada atualizada com sucesso!');
+      // Atualizar totais após editar entrada
+      refetchTotais();
     } catch (error) {
       toast.error('Erro ao atualizar entrada');
     }
@@ -95,6 +117,8 @@ export default function Contas() {
     try {
       await deleteEntrada(entrada.id);
       toast.success('Entrada excluída com sucesso!');
+      // Atualizar totais após excluir entrada
+      refetchTotais();
     } catch (error) {
       toast.error('Erro ao excluir entrada');
     }
@@ -117,11 +141,16 @@ export default function Contas() {
 
   const handleCreateSaida = async (data: any) => {
     try {
-      await createPagamento(data);
+      console.log('📝 Dados recebidos do SaidaForm:', data);
+      
+      // Usar createSaida do hook que já faz a conversão correta
+      await createSaida(data);
       setIsNewSaidaOpen(false);
       setTipoSaidaSelecionado(null);
       toast.success('Saída registrada com sucesso!');
       refreshPagamentos();
+      // Atualizar totais após criar saída
+      refetchTotais();
     } catch (error: any) {
       console.error('Erro ao criar saída:', error);
       toast.error('Não foi possível registrar a saída');
@@ -135,8 +164,9 @@ export default function Contas() {
       setTipoSaidaSelecionado(null);
       toast.success('Abatimento registrado com sucesso!');
       // Refresh das saídas para incluir o novo abatimento
-      refreshPagamentos();
       refetchAbatimentos();
+      // Atualizar totais após criar abatimento
+      refetchTotais();
     } catch (error: any) {
       console.error('Erro ao criar abatimento:', error);
       toast.error('Não foi possível registrar o abatimento');
@@ -155,6 +185,8 @@ export default function Contas() {
       refetchAbatimentos();
       setIsAbatimentoEditOpen(false);
       setEditingAbatimento(null);
+      // Atualizar totais após editar abatimento
+      refetchTotais();
     } catch (error) {
       console.error('Erro ao atualizar abatimento:', error);
       toast.error('Erro ao atualizar abatimento');
@@ -170,6 +202,8 @@ export default function Contas() {
       console.log('🟡 deleteAbatimento EXECUTADO COM SUCESSO');
       toast.success('Abatimento excluído com sucesso!');
       refetchAbatimentos();
+      // Atualizar totais após excluir abatimento
+      refetchTotais();
     } catch (error) {
       console.error('🟡 ERRO ao excluir abatimento:', error);
       toast.error('Erro ao excluir abatimento');

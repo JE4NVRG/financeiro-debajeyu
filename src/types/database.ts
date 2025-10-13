@@ -3,6 +3,7 @@ export interface Conta {
   id: string;
   nome: string;
   ativa: boolean;
+  is_cora_account?: boolean; // Nova coluna para identificar conta Cora
   created_at: string;
   updated_at: string;
 }
@@ -62,6 +63,8 @@ export interface Compra {
   descricao: string;
   categoria: string;
   valor_total: number;
+  valor_pago?: number; // Nova coluna para valor pago
+  saldo_aberto?: number; // Nova coluna para saldo aberto
   forma: 'À Vista' | 'Fiado';
   vencimento?: string; // YYYY-MM-DD
   status: 'Aberta' | 'Parcial' | 'Quitada';
@@ -92,6 +95,10 @@ export interface PagamentoFornecedor {
   conta_id: string;
   data_pagamento: string; // YYYY-MM-DD
   valor_pago: number;
+  tipo_pagamento?: 'total' | 'parcial'; // Nova coluna para tipo de pagamento
+  pagamento_automatico?: boolean; // Nova coluna para pagamento automático
+  saldo_anterior?: number; // Nova coluna para saldo anterior
+  saldo_posterior?: number; // Nova coluna para saldo posterior
   observacao?: string;
   usuario_id: string;
   created_at: string;
@@ -359,4 +366,58 @@ export interface UseSociosReturn {
   refetch: () => void;
   getSocioById: (id: string) => Socio | undefined;
   updateSocio: (id: string, socio: Partial<Socio>) => Promise<void>;
+}
+
+// Novos tipos para pagamento otimizado
+export interface HistoricoPagamento {
+  id: string;
+  compra_id: string;
+  fornecedor_nome: string;
+  compra_descricao: string;
+  valor_compra: number;
+  data_pagamento: string;
+  valor_pago: number;
+  conta_nome: string;
+  tipo_pagamento: 'total' | 'parcial';
+  pagamento_automatico: boolean;
+  saldo_anterior: number;
+  saldo_posterior: number;
+  observacao?: string;
+  usuario_login: string;
+  created_at: string;
+}
+
+export interface ValidacaoSaldo {
+  conta_id: string;
+  saldo_disponivel: number;
+  valor_solicitado: number;
+  saldo_suficiente: boolean;
+}
+
+export interface ResultadoPagamento {
+  success: boolean;
+  pagamento_id?: string;
+  compra_id?: string;
+  valor_pago?: number;
+  saldo_restante?: number;
+  message?: string;
+  error?: string;
+}
+
+// Tipos para hooks de pagamento otimizado
+export interface UsePagamentoRapidoReturn {
+  processarPagamentoTotal: (compraId: string) => Promise<ResultadoPagamento>;
+  validarSaldoCora: (valor: number) => Promise<ValidacaoSaldo>;
+  buscarContaCora: () => Promise<Conta | null>;
+  loading: boolean;
+  error: Error | null;
+}
+
+export interface UsePagamentoParcialReturn {
+  processarPagamentoParcial: (compraId: string, contaId: string, valor: number, observacao?: string) => Promise<ResultadoPagamento>;
+  buscarHistoricoPagamentos: (compraId: string) => Promise<HistoricoPagamento[]>;
+  buscarDetalhesCompra: (compraId: string) => Promise<CompraComDetalhes | null>;
+  validarSaldoConta: (contaId: string, valor: number) => Promise<ValidacaoSaldo>;
+  loading: boolean;
+  error: Error | null;
 }
