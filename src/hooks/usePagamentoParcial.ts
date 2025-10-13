@@ -62,7 +62,6 @@ export const usePagamentoParcial = () => {
         toast({
           title: "Erro no Pagamento",
           description: error.message || "Erro ao processar pagamento parcial",
-          variant: "destructive",
         });
         return {
           success: false,
@@ -77,7 +76,6 @@ export const usePagamentoParcial = () => {
         toast({
           title: "Pagamento Rejeitado",
           description: result.error || "Não foi possível processar o pagamento",
-          variant: "destructive",
         });
         return result;
       }
@@ -91,7 +89,6 @@ export const usePagamentoParcial = () => {
       toast({
         title: "Pagamento Parcial Realizado",
         description: `R$ ${result.valor_pago?.toFixed(2)} pago. ${statusMessage}`,
-        variant: "default",
       });
 
       return result;
@@ -100,7 +97,6 @@ export const usePagamentoParcial = () => {
       toast({
         title: "Erro Crítico",
         description: "Erro interno no sistema de pagamentos",
-        variant: "destructive",
       });
       return {
         success: false,

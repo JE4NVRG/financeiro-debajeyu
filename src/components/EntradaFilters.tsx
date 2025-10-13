@@ -135,7 +135,7 @@ export function EntradaFilters({ filters, onFiltersChange, onClearFilters }: Ent
                 step="0.01"
                 placeholder="0,00"
                 value={filters.valorMin || ''}
-                onChange={(e) => updateFilter('valorMin', parseFloat(e.target.value) || undefined)}
+                onChange={(e) => updateFilter('valorMin', e.target.value || undefined)}
               />
             </div>
 
@@ -147,7 +147,7 @@ export function EntradaFilters({ filters, onFiltersChange, onClearFilters }: Ent
                 step="0.01"
                 placeholder="0,00"
                 value={filters.valorMax || ''}
-                onChange={(e) => updateFilter('valorMax', parseFloat(e.target.value) || undefined)}
+                onChange={(e) => updateFilter('valorMax', e.target.value || undefined)}
               />
             </div>
 
@@ -155,7 +155,7 @@ export function EntradaFilters({ filters, onFiltersChange, onClearFilters }: Ent
               <Label htmlFor="comissao">Comissão</Label>
               <Select
                 value={filters.comissaoPaga?.toString() || ''}
-                onValueChange={(value) => updateFilter('comissaoPaga', value === '' ? undefined : value === 'true')}
+                onValueChange={(value) => updateFilter('comissaoPaga', value === '' ? undefined : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas" />

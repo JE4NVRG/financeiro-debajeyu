@@ -47,7 +47,7 @@ interface HistoricoPagamento {
   conta_nome: string;
   observacao?: string;
   tipo_pagamento: string;
-  automatico: boolean;
+  pagamento_automatico: boolean;
 }
 
 interface PagamentoParcialModalProps {
@@ -103,7 +103,16 @@ export const PagamentoParcialModal: React.FC<PagamentoParcialModalProps> = ({
     try {
       // Buscar histórico de pagamentos
       const historicoData = await buscarHistoricoPagamentos(compra.id);
-      setHistorico(historicoData || []);
+      const historicoFormatado = historicoData?.map(item => ({
+        id: item.id,
+        data_pagamento: item.data_pagamento,
+        valor_pago: item.valor_pago,
+        conta_nome: item.conta_nome,
+        observacao: item.observacao,
+        tipo_pagamento: item.tipo_pagamento,
+        pagamento_automatico: true // Valor padrão
+      })) || [];
+      setHistorico(historicoFormatado);
 
       // Buscar detalhes atualizados da compra
       const detalhes = await buscarDetalhesCompra(compra.id);
@@ -407,7 +416,7 @@ export const PagamentoParcialModal: React.FC<PagamentoParcialModalProps> = ({
                           <Calendar className="h-4 w-4 text-gray-500" />
                           <span className="text-sm">{formatDate(pagamento.data_pagamento)}</span>
                         </div>
-                        <Badge variant={pagamento.automatico ? "default" : "secondary"}>
+                        <Badge variant={pagamento.pagamento_automatico ? "default" : "secondary"}>
                           {pagamento.tipo_pagamento}
                         </Badge>
                       </div>

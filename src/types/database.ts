@@ -63,7 +63,7 @@ export interface Compra {
   descricao: string;
   categoria: string;
   valor_total: number;
-  valor_pago?: number; // Nova coluna para valor pago
+  valor_pago: number; // Valor pago obrigatório
   saldo_aberto?: number; // Nova coluna para saldo aberto
   forma: 'À Vista' | 'Fiado';
   vencimento?: string; // YYYY-MM-DD
@@ -78,6 +78,7 @@ export interface CompraComSaldo extends Compra {
   saldo_aberto: number;
   fornecedor_nome: string;
   fornecedor_tipo: string;
+  observacao?: string;
 }
 
 export interface CompraComDetalhes extends Compra {
@@ -85,7 +86,6 @@ export interface CompraComDetalhes extends Compra {
   saldo_aberto: number;
   fornecedor_nome: string;
   fornecedor_tipo: string;
-  valor_pago?: number;
   valor_pendente?: number;
 }
 

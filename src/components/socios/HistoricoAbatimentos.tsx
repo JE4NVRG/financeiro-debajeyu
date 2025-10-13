@@ -209,7 +209,7 @@ export function HistoricoAbatimentos({
                             {formatDate(abatimento.data_abatimento)}
                           </TableCell>
                           <TableCell className="font-medium">
-                            {abatimento.socio_nome}
+                            {abatimento.socio.nome}
                           </TableCell>
                           <TableCell>
                             <Badge variant="secondary" className="bg-red-100 text-red-800">
@@ -223,7 +223,7 @@ export function HistoricoAbatimentos({
                             {formatBRL(abatimento.saldo_posterior)}
                           </TableCell>
                           <TableCell>
-                            {abatimento.conta_nome}
+                            {abatimento.conta.nome}
                           </TableCell>
                           <TableCell>
                             <span className="text-sm text-muted-foreground">

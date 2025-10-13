@@ -12,7 +12,7 @@ import { useCompras } from '../hooks/useCompras';
 import { useFornecedores } from '../hooks/useFornecedores';
 import { usePagamentoRapido } from '../hooks/usePagamentoRapido';
 import { usePagamentoParcial } from '../hooks/usePagamentoParcial';
-import { CompraForm } from '../components/fornecedores/CompraForm';
+import { NovaCompraFormComponent as CompraForm } from '../components/fornecedores/NovaCompraForm';
 import { PagamentoRapidoModal } from '../components/fornecedores/PagamentoRapidoModal';
 import { PagamentoParcialModal } from '../components/fornecedores/PagamentoParcialModal';
 import { formatBRL, formatDate } from '../lib/utils';
@@ -419,7 +419,16 @@ export default function Compras() {
             <DialogTitle>Editar Compra</DialogTitle>
           </DialogHeader>
           <CompraForm
-            compra={editingCompra}
+            initialData={editingCompra ? {
+              fornecedor_id: editingCompra.fornecedor_id,
+              data: editingCompra.data,
+              descricao: editingCompra.descricao,
+              categoria: editingCompra.categoria,
+              valor_total: editingCompra.valor_total.toString(),
+              forma: editingCompra.forma,
+              vencimento: editingCompra.vencimento || '',
+              observacao: editingCompra.observacao || ''
+            } : undefined}
             onSubmit={handleUpdateCompra}
             onCancel={() => {
               setIsEditCompraOpen(false);
