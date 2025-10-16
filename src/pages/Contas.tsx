@@ -76,7 +76,7 @@ export default function Contas() {
   const totalCora = totaisConta.find(total => total.conta_id === contaCora?.id);
   
   // Calcular totais de saídas (pagamentos + abatimentos)
-  const totalPagamentos = pagamentos?.reduce((sum, pagamento) => sum + pagamento.paid_value, 0) || 0;
+  const totalPagamentos = pagamentos?.reduce((sum, pagamento) => sum + (pagamento.valor_pago || pagamento.paid_value || 0), 0) || 0;
   const totalAbatimentos = abatimentos?.reduce((sum, abatimento) => sum + abatimento.valor, 0) || 0;
   const totalSaidas = totalPagamentos + totalAbatimentos;
   const saldoAtual = (totalCora?.total_recebido || 0) - totalSaidas;
