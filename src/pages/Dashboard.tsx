@@ -293,7 +293,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-600">
-              {formatBRL(totalBlocked || 0)}
+              {formatBRL(totalBlocked?.total_blocked || 0)}
             </div>
             <p className="text-xs text-purple-600">
               Total bloqueado em marketplaces

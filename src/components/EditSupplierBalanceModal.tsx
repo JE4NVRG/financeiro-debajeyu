@@ -29,7 +29,7 @@ export function EditSupplierBalanceModal({
   });
 
   const { updateSupplierBalance, loading } = useSupplierBalance();
-  const { value: valorFormatted, onChange: onValorChange } = useBRLMask(form.valor);
+  const { value: valorFormatted, handleChange } = useBRLMask();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,8 +97,8 @@ export function EditSupplierBalanceModal({
               placeholder="R$ 0,00"
               value={valorFormatted}
               onChange={(e) => {
-                onValorChange(e);
-                setForm(prev => ({ ...prev, valor: e.target.value }));
+                const newValue = handleChange(e.target.value);
+                setForm(prev => ({ ...prev, valor: newValue }));
               }}
               disabled={loading}
               required

@@ -18,7 +18,8 @@ export function MarketplaceForm({
   initialData 
 }: MarketplaceFormProps) {
   const [formData, setFormData] = useState<NovoMarketplaceForm>({
-    nome: ''
+    nome: '',
+    dinheiro_a_liberar: ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -26,7 +27,8 @@ export function MarketplaceForm({
   useEffect(() => {
     if (initialData) {
       setFormData({
-        nome: initialData.nome || ''
+        nome: initialData.nome || '',
+        dinheiro_a_liberar: initialData.dinheiro_a_liberar || ''
       });
     }
   }, [initialData]);
@@ -51,9 +53,13 @@ export function MarketplaceForm({
     console.log('Form validation result:', validateForm());
     
     if (validateForm()) {
-      console.log('Calling onSubmit with:', { nome: formData.nome.trim() });
+      console.log('Calling onSubmit with:', { 
+        nome: formData.nome.trim(),
+        dinheiro_a_liberar: formData.dinheiro_a_liberar
+      });
       onSubmit({
-        nome: formData.nome.trim()
+        nome: formData.nome.trim(),
+        dinheiro_a_liberar: formData.dinheiro_a_liberar
       });
     }
   };
@@ -74,6 +80,22 @@ export function MarketplaceForm({
           className={errors.nome ? 'border-red-500' : ''}
         />
         {errors.nome && <p className="text-sm text-red-500">{errors.nome}</p>}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="dinheiro_a_liberar">Saldo a Liberar (opcional)</Label>
+        <Input
+          id="dinheiro_a_liberar"
+          type="text"
+          value={formData.dinheiro_a_liberar}
+          onChange={(e) => {
+            setFormData(prev => ({ ...prev, dinheiro_a_liberar: e.target.value }));
+          }}
+          placeholder="R$ 0,00"
+        />
+        <p className="text-xs text-gray-500">
+          Valor que está bloqueado neste marketplace
+        </p>
       </div>
 
       <div className="flex justify-end space-x-2 pt-4">
