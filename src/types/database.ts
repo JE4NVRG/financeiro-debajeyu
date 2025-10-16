@@ -12,6 +12,7 @@ export interface Marketplace {
   id: string;
   nome: string;
   ativo: boolean;
+  dinheiro_a_liberar: number;
   created_at: string;
   updated_at: string;
 }
@@ -43,6 +44,8 @@ export interface Fornecedor {
   tipo: 'Camisa' | 'Gráfica' | 'Outros';
   status: 'Ativo' | 'Inativo';
   observacao?: string;
+  saldo_devedor_manual: number;
+  tem_ajuste_manual: boolean;
   created_at: string;
   updated_at: string;
   usuario_id: string;
@@ -132,6 +135,7 @@ export interface NovaEntradaForm {
 
 export interface NovoMarketplaceForm {
   nome: string;
+  dinheiro_a_liberar?: string; // String para máscara BRL
 }
 
 export interface NovoFornecedorForm {
@@ -295,6 +299,42 @@ export interface Socio {
   pre_saldo: number;
   created_at: string;
   updated_at: string;
+}
+
+// Tipos para histórico de valores bloqueados em marketplaces
+export interface MarketplaceBalanceHistory {
+  id: string;
+  marketplace_id: string;
+  valor_anterior: number;
+  valor_novo: number;
+  usuario_id: string;
+  observacao?: string;
+  created_at: string;
+  
+  // Relacionamentos (quando incluídos na query)
+  marketplace?: {
+    nome: string;
+  };
+  usuario?: {
+    email: string;
+  };
+}
+
+// Tipos para totais de valores bloqueados
+export interface TotalBlockedAmounts {
+  total_blocked: number;
+  marketplaces: Array<{
+    marketplace_id: string;
+    marketplace_nome: string;
+    dinheiro_a_liberar: number;
+  }>;
+}
+
+// Tipos para formulários de edição de valores bloqueados
+export interface EditBlockedAmountForm {
+  marketplace_id: string;
+  valor: string; // String para máscara BRL
+  observacao?: string;
 }
 
 // Tipos para Abatimentos de Pré-Saldo
@@ -537,4 +577,31 @@ export interface AuthContextType {
   uploadAvatar: (file: File) => Promise<string>;
   hasPermission: (module: string, action: 'read' | 'write' | 'delete') => boolean;
   isAdmin: () => boolean;
+}
+
+
+// Tipos para histórico de saldo devedor de fornecedores
+export interface FornecedorSaldoHistory {
+  id: string;
+  fornecedor_id: string;
+  valor_anterior: number;
+  valor_novo: number;
+  observacao: string;
+  usuario_id: string;
+  created_at: string;
+  
+  // Relacionamentos (quando incluídos na query)
+  fornecedor?: {
+    nome: string;
+  };
+  usuario?: {
+    login: string;
+  };
+}
+
+// Tipos para formulários de edição de saldo devedor
+export interface EditSupplierBalanceForm {
+  fornecedor_id: string;
+  valor: string; // String para máscara BRL
+  observacao: string;
 }

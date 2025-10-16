@@ -244,8 +244,9 @@ export function Fornecedores() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os tipos</SelectItem>
-                  <SelectItem value="Fornecedor">Fornecedor</SelectItem>
-                  <SelectItem value="Prestador de Serviço">Prestador de Serviço</SelectItem>
+                  <SelectItem value="Camisa">Camisa</SelectItem>
+                  <SelectItem value="Gráfica">Gráfica</SelectItem>
+                  <SelectItem value="Outros">Outros</SelectItem>
                 </SelectContent>
               </Select>
             </div>

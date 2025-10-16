@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Marketplace, NovoMarketplaceForm } from '../types/database';
+import { 
+  Marketplace, 
+  NovoMarketplaceForm, 
+  TotalBlockedAmounts, 
+  EditBlockedAmountForm,
+  MarketplaceBalanceHistory 
+} from '../types/database';
 import { toast } from 'sonner';
 
 export function useMarketplaces() {
@@ -39,10 +45,15 @@ export function useMarketplaces() {
       console.log('Tentando criar marketplace:', marketplace);
       console.log('Usuário autenticado:', user);
 
+      const dinheiroALiberar = marketplace.dinheiro_a_liberar 
+        ? parseFloat(marketplace.dinheiro_a_liberar.replace(/[^\d,]/g, '').replace(',', '.'))
+        : 0;
+
       const { data, error } = await supabase
         .from('marketplaces')
         .insert({
-          nome: marketplace.nome
+          nome: marketplace.nome,
+          dinheiro_a_liberar: dinheiroALiberar
         })
         .select();
 
@@ -63,6 +74,29 @@ export function useMarketplaces() {
     }
   };
 
+  const updateBlockedAmount = async (form: EditBlockedAmountForm) => {
+    if (!user) throw new Error('Usuário não autenticado');
+
+    try {
+      const valor = parseFloat(form.valor.replace(/[^\d,.]/g, '').replace(',', '.')) || 0;
+
+      const { error } = await supabase
+        .from('marketplaces')
+        .update({ dinheiro_a_liberar: valor })
+        .eq('id', form.marketplace_id);
+
+      if (error) throw error;
+
+      toast.success('Saldo a liberar atualizado com sucesso!');
+      await fetchMarketplaces();
+    } catch (err) {
+      console.error('Erro ao atualizar saldo a liberar:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar saldo a liberar';
+      toast.error(errorMessage);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchMarketplaces();
@@ -74,6 +108,7 @@ export function useMarketplaces() {
     loading,
     error,
     refetch: fetchMarketplaces,
-    createMarketplace
+    createMarketplace,
+    updateBlockedAmount
   };
 }

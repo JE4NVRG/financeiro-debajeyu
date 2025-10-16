@@ -254,33 +254,31 @@ export function useUserManagement() {
   }, []);
 
   // Alterar senha do usuário
-  const changePassword = useCallback(async (newPassword: string) => {
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Verificar se há uma sessão ativa
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      // Obter usuário autenticado do localStorage (sistema customizado)
+      const authUser = JSON.parse(localStorage.getItem('auth_user') || 'null');
       
-      if (sessionError) {
-        console.error('Erro ao obter sessão:', sessionError);
-        throw new Error('Erro ao verificar sessão de autenticação');
-      }
-
-      if (!session) {
+      if (!authUser) {
         console.error('Nenhuma sessão ativa encontrada');
         throw new Error('Sessão de autenticação não encontrada. Faça login novamente.');
       }
 
-      console.log('🔐 Alterando senha para usuário:', session.user.id);
+      console.log('🔐 Alterando senha para usuário:', authUser.id);
 
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
+      // Chamar função RPC para alterar senha no sistema customizado
+      const { error } = await supabase.rpc('change_user_password', {
+        p_user_id: authUser.id,
+        p_current_password: currentPassword,
+        p_new_password: newPassword
       });
 
       if (error) {
-        console.error('Erro do Supabase ao alterar senha:', error);
-        throw error;
+        console.error('Erro ao alterar senha:', error);
+        throw new Error(error.message || 'Erro ao alterar senha');
       }
 
       console.log('✅ Senha alterada com sucesso');

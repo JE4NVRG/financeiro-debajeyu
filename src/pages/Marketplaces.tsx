@@ -16,13 +16,17 @@ import {
   Percent, 
   DollarSign, 
   Hash,
-  ArrowLeft 
+  ArrowLeft,
+  Lock,
+  Edit
 } from 'lucide-react';
 import { EntradaTable } from '../components/EntradaTable';
 import { MarketplaceForm } from '../components/MarketplaceForm';
 import { useMarketplaces } from '../hooks/useMarketplaces';
 import { useEntradas } from '../hooks/useEntradas';
 import { useTotais } from '../hooks/useTotais';
+import { useBlockedAmounts } from '../hooks/useBlockedAmounts';
+import { EditBlockedAmountModal } from '../components/EditBlockedAmountModal';
 import { Marketplace, NovoMarketplaceForm, Entrada } from '../types/database';
 import { formatBRL } from '../lib/utils';
 import { toast } from 'sonner';
@@ -30,9 +34,11 @@ import { toast } from 'sonner';
 export default function Marketplaces() {
   const [selectedMarketplace, setSelectedMarketplace] = useState<Marketplace | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editBlockedAmountMarketplace, setEditBlockedAmountMarketplace] = useState<Marketplace | null>(null);
 
   const { marketplaces, loading, createMarketplace, refetch } = useMarketplaces();
   const { totaisMarketplace } = useTotais();
+  const { totalBlocked } = useBlockedAmounts();
   
   // Buscar entradas do marketplace selecionado
   const { entradas: marketplaceEntradas, loading: entradasLoading } = useEntradas({
@@ -162,7 +168,7 @@ export default function Marketplaces() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Marketplaces</h1>
           <p className="text-muted-foreground">
-            Gerencie os marketplaces e visualize seus totais
+            Gerencie os marketplaces, visualize seus totais e valores bloqueados
           </p>
         </div>
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
@@ -184,6 +190,24 @@ export default function Marketplaces() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Card de Total de Valores Bloqueados */}
+      <Card className="bg-gradient-to-r from-red-50 to-pink-50 border-red-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium text-red-700 flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            Total de Valores Bloqueados
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold text-red-600">
+            {formatBRL(totalBlocked?.total_blocked || 0)}
+          </div>
+          <p className="text-xs text-red-600 mt-1">
+            Soma de todos os marketplaces
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Lista de marketplaces */}
       {loading ? (
@@ -244,18 +268,40 @@ export default function Marketplaces() {
                     </div>
                   </div>
                   
-                  <div className="pt-2 border-t">
+                  <div className="pt-2 border-t space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Total</span>
                       <span className="font-bold text-blue-600">
                         {formatBRL(totais?.total_marketplace || 0)}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center mt-1">
+                    <div className="flex justify-between items-center">
                       <span className="text-xs text-gray-500">Entradas</span>
                       <span className="text-xs text-gray-600">
                         {totais?.total_entradas || 0}
                       </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-red-600 flex items-center gap-1">
+                        <Lock className="h-3 w-3" />
+                        Saldo a Liberar
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-medium text-red-600">
+                          {formatBRL(marketplace.dinheiro_a_liberar || 0)}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-5 w-5 p-0 text-red-600 hover:text-red-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditBlockedAmountMarketplace(marketplace);
+                          }}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -264,6 +310,13 @@ export default function Marketplaces() {
           })}
         </div>
       )}
+
+      {/* Modal de Edição de Saldo a Liberar */}
+      <EditBlockedAmountModal
+        marketplace={editBlockedAmountMarketplace}
+        isOpen={!!editBlockedAmountMarketplace}
+        onClose={() => setEditBlockedAmountMarketplace(null)}
+      />
     </div>
   );
 }

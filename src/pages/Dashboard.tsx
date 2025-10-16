@@ -9,7 +9,8 @@ import { useFornecedores } from '../hooks/useFornecedores'
 import { useCompras } from '../hooks/useCompras'
 import { usePagamentosFornecedores } from '../hooks/usePagamentosFornecedores'
 import { formatBRL } from '../lib/utils'
-import { CreditCard, Percent, Building2, AlertCircle } from 'lucide-react'
+import { CreditCard, Percent, Building2, AlertCircle, Lock } from 'lucide-react'
+import { useBlockedAmounts } from '../hooks/useBlockedAmounts'
 
 interface SocioSummary {
   id: string
@@ -38,6 +39,9 @@ export function Dashboard() {
   const { fornecedores } = useFornecedores()
   const { compras } = useCompras()
   const { pagamentos } = usePagamentosFornecedores()
+
+  // Hook para valores bloqueados
+  const { totalBlocked } = useBlockedAmounts()
 
   // Calcular totais de fornecedores
   const totaisFornecedores = {
@@ -203,7 +207,7 @@ export function Dashboard() {
       </div>
 
       {/* Cards de resumo */}
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Pré-Saldo</CardTitle>
@@ -276,6 +280,23 @@ export function Dashboard() {
             </div>
             <p className="text-xs text-orange-600">
               Total de comissões pagas
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-purple-50 to-violet-50 border-purple-200">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-purple-700 flex items-center gap-2">
+              <Lock className="h-4 w-4" />
+              Valores Bloqueados
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">
+              {formatBRL(totalBlocked || 0)}
+            </div>
+            <p className="text-xs text-purple-600">
+              Total bloqueado em marketplaces
             </p>
           </CardContent>
         </Card>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MoreHorizontal, Edit, Trash2, Eye, CheckCircle, Calculator } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2, Eye, CheckCircle, Calculator, Edit3 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { 
@@ -19,8 +19,12 @@ import {
 import { ConfirmationDialog } from '../ui/confirmation-dialog';
 import { PagamentoRapidoModal } from './PagamentoRapidoModal';
 import { PagamentoParcialModal } from './PagamentoParcialModal';
+import { PagamentoTotalFornecedorModal } from './PagamentoTotalFornecedorModal';
+import { EditSupplierBalanceModal } from '../EditSupplierBalanceModal';
 import { FornecedorComTotais } from '../../types/database';
 import { formatBRL, formatDate } from '../../lib/utils';
+import { usePagamentoFornecedor } from '../../hooks/usePagamentoFornecedor';
+import { toast } from 'sonner';
 
 interface FornecedorTableProps {
   fornecedores: FornecedorComTotais[];
@@ -39,6 +43,8 @@ export function FornecedorTable({
   onView,
   onPaymentSuccess
 }: FornecedorTableProps) {
+  const { pagarTodasCompras, loading: pagamentoLoading } = usePagamentoFornecedor();
+  
   const [deleteConfirm, setDeleteConfirm] = useState<{
     isOpen: boolean;
     fornecedor: FornecedorComTotais | null;
@@ -63,6 +69,22 @@ export function FornecedorTable({
     compra: null
   });
 
+  const [editBalanceModal, setEditBalanceModal] = useState<{
+    isOpen: boolean;
+    fornecedor: FornecedorComTotais | null;
+  }>({
+    isOpen: false,
+    fornecedor: null
+  });
+
+  const [pagamentoTotalModal, setPagamentoTotalModal] = useState<{
+    isOpen: boolean;
+    fornecedor: FornecedorComTotais | null;
+  }>({
+    isOpen: false,
+    fornecedor: null
+  });
+
   const handleDeleteClick = (fornecedor: FornecedorComTotais) => {
     setDeleteConfirm({
       isOpen: true,
@@ -77,25 +99,17 @@ export function FornecedorTable({
     setDeleteConfirm({ isOpen: false, fornecedor: null });
   };
 
-  const handlePagarTudo = (fornecedor: FornecedorComTotais) => {
-    // Criar objeto compra simulado baseado no fornecedor
-    const compraSimulada = {
-      id: fornecedor.id, // Usar o ID do fornecedor diretamente
-      fornecedor_id: fornecedor.id,
-      descricao: `Pagamento total - ${fornecedor.nome}`,
-      valor_total: fornecedor.total_aberto || 0,
-      valor_pago: 0,
-      saldo_aberto: fornecedor.total_aberto || 0,
-      status: 'Pendente',
-      data: new Date().toISOString(),
-      fornecedores: {
-        nome: fornecedor.nome
-      }
-    };
+  const handlePagarTudo = async (fornecedor: FornecedorComTotais) => {
+    console.log('🔍 [FORNECEDOR-TABLE] Abrindo modal de pagamento total para fornecedor:', {
+      fornecedorId: fornecedor.id,
+      nome: fornecedor.nome,
+      totalAberto: fornecedor.total_aberto
+    });
 
-    setPagamentoRapidoModal({
+    // Abrir modal de pagamento total
+    setPagamentoTotalModal({
       isOpen: true,
-      compra: compraSimulada
+      fornecedor: fornecedor
     });
   };
 
@@ -125,6 +139,7 @@ export function FornecedorTable({
     onPaymentSuccess?.();
     setPagamentoRapidoModal({ isOpen: false, compra: null });
     setPagamentoParcialModal({ isOpen: false, compra: null });
+    setPagamentoTotalModal({ isOpen: false, fornecedor: null });
   };
 
   const getStatusBadge = (status: string) => {
@@ -227,6 +242,33 @@ export function FornecedorTable({
     );
   }
 
+  const handleEditBalance = (fornecedor: FornecedorComTotais) => {
+    setEditBalanceModal({
+      isOpen: true,
+      fornecedor
+    });
+  };
+
+  const handleBalanceEditSuccess = () => {
+    onPaymentSuccess?.();
+    setEditBalanceModal({ isOpen: false, fornecedor: null });
+  };
+
+  const getBalanceTypeBadge = (fornecedor: FornecedorComTotais) => {
+    if (fornecedor.tem_ajuste_manual) {
+      return (
+        <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
+          Manual
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+        Auto
+      </Badge>
+    );
+  };
+
   return (
     <>
       <div className="rounded-md border">
@@ -238,7 +280,7 @@ export function FornecedorTable({
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Total Gasto</TableHead>
               <TableHead className="text-right">Total Pago</TableHead>
-              <TableHead className="text-right">Saldo Aberto</TableHead>
+              <TableHead className="text-right">Saldo Devedor</TableHead>
               <TableHead>Última Compra</TableHead>
               <TableHead className="text-center">Pagamentos</TableHead>
               <TableHead className="w-[50px]"></TableHead>
@@ -246,7 +288,10 @@ export function FornecedorTable({
           </TableHeader>
           <TableBody>
             {fornecedores.map((fornecedor) => {
-              const temSaldoAberto = (fornecedor.total_aberto || 0) > 0;
+              const saldoDevedor = fornecedor.tem_ajuste_manual 
+                ? fornecedor.saldo_devedor_manual 
+                : (fornecedor.total_aberto || 0);
+              const temSaldoAberto = saldoDevedor > 0;
               
               return (
                 <TableRow key={fornecedor.id} className="cursor-pointer hover:bg-gray-50">
@@ -281,13 +326,21 @@ export function FornecedorTable({
                   >
                     {formatBRL(fornecedor.total_pago || 0)}
                   </TableCell>
-                  <TableCell 
-                    className="text-right font-mono"
-                    onClick={() => onView(fornecedor)}
-                  >
-                    <span className={fornecedor.total_aberto && fornecedor.total_aberto > 0 ? 'text-red-600' : 'text-green-600'}>
-                      {formatBRL(fornecedor.total_aberto || 0)}
-                    </span>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <span className={`font-mono ${saldoDevedor > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {formatBRL(saldoDevedor)}
+                      </span>
+                      {getBalanceTypeBadge(fornecedor)}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEditBalance(fornecedor)}
+                        className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                      >
+                        <Edit3 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </TableCell>
                   <TableCell onClick={() => onView(fornecedor)}>
                     {fornecedor.ultima_compra ? formatDate(fornecedor.ultima_compra) : '-'}
@@ -298,10 +351,11 @@ export function FornecedorTable({
                         <Button
                           size="sm"
                           onClick={() => handlePagarTudo(fornecedor)}
-                          className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 h-7 text-xs"
+                          disabled={pagamentoLoading}
+                          className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 h-7 text-xs disabled:opacity-50"
                         >
                           <CheckCircle className="h-3 w-3 mr-1" />
-                          Pagar Tudo
+                          {pagamentoLoading ? 'Processando...' : 'Pagar Tudo'}
                         </Button>
                         <Button
                           size="sm"
@@ -334,6 +388,10 @@ export function FornecedorTable({
                         <DropdownMenuItem onClick={() => onEdit(fornecedor)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditBalance(fornecedor)}>
+                          <Edit3 className="mr-2 h-4 w-4" />
+                          Editar Saldo
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeleteClick(fornecedor)}
@@ -375,6 +433,20 @@ export function FornecedorTable({
         onOpenChange={(open) => setPagamentoParcialModal({ isOpen: open, compra: open ? pagamentoParcialModal.compra : null })}
         compra={pagamentoParcialModal.compra}
         onSuccess={handlePaymentSuccess}
+      />
+
+      <PagamentoTotalFornecedorModal
+        open={pagamentoTotalModal.isOpen}
+        onOpenChange={(open) => setPagamentoTotalModal({ isOpen: open, fornecedor: open ? pagamentoTotalModal.fornecedor : null })}
+        fornecedor={pagamentoTotalModal.fornecedor}
+        onSuccess={handlePaymentSuccess}
+      />
+
+      <EditSupplierBalanceModal
+        isOpen={editBalanceModal.isOpen}
+        onClose={() => setEditBalanceModal({ isOpen: false, fornecedor: null })}
+        fornecedor={editBalanceModal.fornecedor}
+        onSuccess={handleBalanceEditSuccess}
       />
     </>
   );

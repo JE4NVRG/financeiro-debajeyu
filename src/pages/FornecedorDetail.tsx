@@ -2,20 +2,23 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
+import { Badge } from '../components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog'
-import { ArrowLeft, Building2, DollarSign, AlertCircle, Plus, ShoppingCart, CreditCard } from 'lucide-react'
+import { ArrowLeft, Building2, DollarSign, AlertCircle, Plus, ShoppingCart, CreditCard, History, Edit3 } from 'lucide-react'
 import { useFornecedores } from '../hooks/useFornecedores'
 import { useCompras } from '../hooks/useCompras'
 import { usePagamentosFornecedores } from '../hooks/usePagamentosFornecedores'
+import { useSupplierBalance } from '../hooks/useSupplierBalance'
 import { CompraTable } from '../components/fornecedores/CompraTable'
 import { CompraForm } from '../components/fornecedores/CompraForm'
 import { PagamentoTable } from '../components/fornecedores/PagamentoTable'
 import { CompraModal } from '../components/CompraModal'
 import { ConfirmationModal } from '../components/ui/ConfirmationModal'
-import { formatBRL } from '../lib/utils'
+import { EditSupplierBalanceModal } from '../components/EditSupplierBalanceModal'
+import { formatBRL, formatDate } from '../lib/utils'
 import { useToast } from '../components/ui/toast'
-import type { Fornecedor, Compra, NovaCompraForm } from '../types/database'
+import type { Fornecedor, Compra, NovaCompraForm, FornecedorComTotais } from '../types/database'
 
 export function FornecedorDetail() {
   const { id } = useParams<{ id: string }>()
@@ -27,13 +30,18 @@ export function FornecedorDetail() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [compraToDelete, setCompraToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [editBalanceModal, setEditBalanceModal] = useState(false)
 
-  const { fornecedores, loading: fornecedoresLoading } = useFornecedores()
+  const { fornecedores, loading: fornecedoresLoading, refetch: refetchFornecedores } = useFornecedores()
   const { compras, loading: comprasLoading, createCompra, updateCompra, deleteCompra, refetch: refreshCompras } = useCompras(id)
   const { pagamentos, loading: pagamentosLoading } = usePagamentosFornecedores()
+  const { getBalanceHistory } = useSupplierBalance()
   const { addToast } = useToast()
 
-  const fornecedor = fornecedores?.find(f => f.id === id)
+  const [balanceHistory, setBalanceHistory] = useState<any[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+
+  const fornecedor = fornecedores?.find(f => f.id === id) as FornecedorComTotais | undefined
   const comprasFornecedor = compras || []
   const pagamentosFornecedor = pagamentos?.filter(p => 
     comprasFornecedor.some(c => c.id === p.compra_id)
@@ -46,6 +54,27 @@ export function FornecedorDetail() {
     emAberto: 0
   }
   totaisFornecedor.emAberto = totaisFornecedor.gastoTotal - totaisFornecedor.totalPago
+
+  // Load balance history when tab changes to history
+  useEffect(() => {
+    if (activeTab === 'historico' && id) {
+      loadBalanceHistory()
+    }
+  }, [activeTab, id])
+
+  const loadBalanceHistory = async () => {
+    if (!id) return
+    
+    setHistoryLoading(true)
+    try {
+      const history = await getBalanceHistory(id)
+      setBalanceHistory(history)
+    } catch (error) {
+      console.error('Error loading balance history:', error)
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
 
   const handleCreateCompra = async (data: any) => {
     try {
@@ -138,6 +167,31 @@ export function FornecedorDetail() {
     setCompraToDelete(null)
   }
 
+  const handleEditBalance = () => {
+    setEditBalanceModal(true)
+  }
+
+  const handleBalanceEditSuccess = () => {
+    refetchFornecedores()
+    loadBalanceHistory()
+    setEditBalanceModal(false)
+  }
+
+  const getBalanceTypeBadge = (fornecedor: FornecedorComTotais) => {
+    if (fornecedor.tem_ajuste_manual) {
+      return (
+        <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
+          Manual
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+        Auto
+      </Badge>
+    );
+  }
+
   const loading = fornecedoresLoading || comprasLoading || pagamentosLoading
 
   if (loading) {
@@ -185,24 +239,32 @@ export function FornecedorDetail() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
               <Building2 className="h-8 w-8" />
-              {fornecedor.nome}
+              {fornecedor?.nome}
             </h1>
             <p className="text-muted-foreground">
-              {fornecedor.tipo} • {fornecedor.status}
+              {fornecedor?.tipo} • {fornecedor?.status}
             </p>
           </div>
         </div>
-        <Button onClick={() => setIsNewCompraOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Lançar Despesa
-        </Button>
+        <div className="flex gap-2">
+          {fornecedor && (
+            <Button variant="outline" onClick={handleEditBalance}>
+              <Edit3 className="mr-2 h-4 w-4" />
+              Editar Saldo
+            </Button>
+          )}
+          <Button onClick={() => setIsNewCompraOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Lançar Despesa
+          </Button>
+        </div>
       </div>
 
       <CompraForm
         isOpen={isNewCompraOpen}
         onClose={() => setIsNewCompraOpen(false)}
         onSubmit={handleCreateCompra}
-        fornecedorNome={fornecedor.nome}
+        fornecedorNome={fornecedor?.nome || ''}
       />
 
       {/* Cards de resumo do fornecedor */}
@@ -239,22 +301,32 @@ export function FornecedorDetail() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saldo em Aberto</CardTitle>
+            <CardTitle className="text-sm font-medium">Saldo Devedor</CardTitle>
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${totaisFornecedor.emAberto > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-              {formatBRL(totaisFornecedor.emAberto)}
+            <div className="flex items-center justify-between">
+              <div>
+                <div className={`text-2xl font-bold ${totaisFornecedor.emAberto > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                  {fornecedor?.tem_ajuste_manual 
+                    ? formatBRL(fornecedor.saldo_devedor_manual || 0)
+                    : formatBRL(totaisFornecedor.emAberto)
+                  }
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs text-muted-foreground">
+                    {totaisFornecedor.emAberto > 0 ? 'Pendente de pagamento' : 'Tudo quitado'}
+                  </p>
+                  {fornecedor && getBalanceTypeBadge(fornecedor)}
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {totaisFornecedor.emAberto > 0 ? 'Pendente de pagamento' : 'Tudo quitado'}
-            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Informações do fornecedor */}
-      {fornecedor.observacao && (
+      {fornecedor?.observacao && (
         <Card>
           <CardHeader>
             <CardTitle>Observações</CardTitle>
@@ -265,9 +337,9 @@ export function FornecedorDetail() {
         </Card>
       )}
 
-      {/* Tabs de Compras e Pagamentos */}
+      {/* Tabs de Compras, Pagamentos e Histórico */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="compras" className="flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" />
             Compras ({comprasFornecedor.length})
@@ -275,6 +347,10 @@ export function FornecedorDetail() {
           <TabsTrigger value="pagamentos" className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
             Pagamentos ({pagamentosFornecedor.length})
+          </TabsTrigger>
+          <TabsTrigger value="historico" className="flex items-center gap-2">
+            <History className="h-4 w-4" />
+            Histórico de Saldo ({balanceHistory.length})
           </TabsTrigger>
         </TabsList>
 
@@ -312,6 +388,65 @@ export function FornecedorDetail() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="historico" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Histórico de Ajustes de Saldo</CardTitle>
+              <CardDescription>
+                Histórico de todos os ajustes manuais realizados no saldo devedor
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {historyLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                </div>
+              ) : balanceHistory.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Nenhum ajuste de saldo foi realizado ainda.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {balanceHistory.map((entry, index) => (
+                    <div key={index} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">
+                            {entry.tipo_operacao === 'manual_adjustment' ? 'Ajuste Manual' : 'Operação'}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            {formatDate(entry.data_alteracao)}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-mono text-sm">
+                            <span className="text-muted-foreground">De: </span>
+                            <span className={entry.saldo_anterior > 0 ? 'text-red-600' : 'text-green-600'}>
+                              {formatBRL(entry.saldo_anterior)}
+                            </span>
+                          </div>
+                          <div className="font-mono text-sm">
+                            <span className="text-muted-foreground">Para: </span>
+                            <span className={entry.saldo_novo > 0 ? 'text-red-600' : 'text-green-600'}>
+                              {formatBRL(entry.saldo_novo)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {entry.observacao && (
+                        <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
+                          <strong>Observação:</strong> {entry.observacao}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Modal de Edição */}
@@ -339,6 +474,16 @@ export function FornecedorDetail() {
         variant="destructive"
         loading={isDeleting}
       />
+
+      {/* Modal de Edição de Saldo */}
+      {fornecedor && (
+        <EditSupplierBalanceModal
+          isOpen={editBalanceModal}
+          onClose={() => setEditBalanceModal(false)}
+          fornecedor={fornecedor}
+          onSuccess={handleBalanceEditSuccess}
+        />
+      )}
     </div>
   )
 }

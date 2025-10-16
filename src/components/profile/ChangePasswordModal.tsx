@@ -97,7 +97,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
         return;
       }
 
-      await changePassword(formData.new_password);
+      await changePassword(formData.current_password, formData.new_password);
 
       toast({
         title: 'Sucesso',

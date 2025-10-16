@@ -261,7 +261,25 @@ export const usePagamentoRapido = () => {
   const pagarTotal = async (compraId: string, foiPago: boolean = true): Promise<PagamentoRapidoResult> => {
     setLoading(true);
     try {
-      console.log('🚀 Iniciando pagamento total:', { compraId, foiPago });
+      console.log('🚀 Iniciando pagamento total:', { 
+        compraId, 
+        foiPago, 
+        compraIdType: typeof compraId,
+        compraIdLength: compraId?.length,
+        userId: user?.id,
+        userIdType: typeof user?.id
+      });
+
+      // Validar se compraId é um UUID válido
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(compraId)) {
+        console.error('❌ ID da compra não é um UUID válido:', compraId);
+        toast.error("ID da compra inválido");
+        return {
+          success: false,
+          error: 'ID da compra inválido'
+        };
+      }
 
       // Usar função SQL para processar pagamento total
       const { data, error } = await supabase.rpc('process_pagamento_total', {
