@@ -1,11 +1,26 @@
 /** @type {import('tailwindcss').Config} */
 
 export default {
-  darkMode: ["class", "class"],
+  darkMode: "class", // Enable class-based dark mode
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
   	container: {
-  		center: true
+  		center: true,
+  		padding: {
+  			DEFAULT: '1rem',
+  			sm: '2rem',
+  			lg: '4rem',
+  			xl: '5rem',
+  			'2xl': '6rem',
+  		},
+  	},
+  	screens: {
+  		'xs': '320px',
+  		'sm': '640px',
+  		'md': '768px',
+  		'lg': '1024px',
+  		'xl': '1280px',
+  		'2xl': '1536px',
   	},
   	extend: {
   		borderRadius: {
@@ -26,7 +41,9 @@ export default {
   			},
   			primary: {
   				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
+  				foreground: 'hsl(var(--primary-foreground))',
+  				light: '#3B82F6',
+  				dark: '#60A5FA',
   			},
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',
@@ -53,6 +70,27 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
+  			},
+  			// Custom theme colors
+  			'bg-primary': {
+  				light: '#FFFFFF',
+  				dark: '#111827',
+  			},
+  			'bg-secondary': {
+  				light: '#F8FAFC',
+  				dark: '#1F2937',
+  			},
+  			'text-primary': {
+  				light: '#1F2937',
+  				dark: '#F9FAFB',
+  			},
+  			'text-secondary': {
+  				light: '#6B7280',
+  				dark: '#D1D5DB',
+  			},
+  			'border-color': {
+  				light: '#E5E7EB',
+  				dark: '#374151',
   			}
   		}
   	}
