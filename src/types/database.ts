@@ -579,7 +579,6 @@ export interface AuthContextType {
   isAdmin: () => boolean;
 }
 
-
 // Tipos para histórico de saldo devedor de fornecedores
 export interface FornecedorSaldoHistory {
   id: string;
@@ -604,4 +603,100 @@ export interface EditSupplierBalanceForm {
   fornecedor_id: string;
   valor: string; // String para máscara BRL
   observacao: string;
+}
+
+// Tipos para Sistema de Despesas
+export interface CategoriasDespesas {
+  id: string;
+  nome: string;
+  tipo_padrao: 'fixa' | 'avulsa';
+  cor: string;
+  icone: string;
+  ativa: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RecorrenciaConfig {
+  tipo: 'mensal' | 'bimestral' | 'trimestral' | 'semestral' | 'anual';
+  dia_vencimento: number;
+  data_fim?: string; // Data limite para gerar recorrências
+  quantidade_parcelas?: number; // Alternativa à data_fim
+}
+
+export interface Despesa {
+  id: string;
+  tipo: 'despesa';
+  subtipo: 'recorrente' | 'avulsa';
+  descricao: string;
+  valor: number;
+  categoria_id: string;
+  conta_id: string;
+  status: 'pendente' | 'pago' | 'vencido';
+  data_vencimento: string; // YYYY-MM-DD
+  data_pagamento?: string; // YYYY-MM-DD
+  observacoes?: string;
+  recorrencia_config?: RecorrenciaConfig;
+  despesa_origem_id?: string; // Para despesas geradas automaticamente
+  usuario_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DespesaComDetalhes extends Despesa {
+  categoria: {
+    nome: string;
+    cor: string;
+    icone: string;
+  };
+  conta: {
+    nome: string;
+  };
+  usuario: {
+    login: string;
+  };
+  despesa_origem?: {
+    descricao: string;
+  };
+}
+
+// Tipos para formulários de despesas
+export interface NovaDespesaForm {
+  descricao: string;
+  valor: string; // String para máscara BRL
+  categoria_id: string;
+  conta_id: string;
+  subtipo: 'recorrente' | 'avulsa';
+  data_vencimento: string;
+  observacoes?: string;
+  recorrencia_config?: RecorrenciaConfig;
+  status?: 'pendente' | 'pago' | 'vencido';
+  data_pagamento?: string;
+}
+
+// Tipos para filtros de despesas
+export interface FiltrosDespesa {
+  status?: 'pendente' | 'pago' | 'vencido';
+  subtipo?: 'recorrente' | 'avulsa';
+  categoria_id?: string;
+  conta_id?: string;
+  data_inicio?: string;
+  data_fim?: string;
+  valor_min?: string;
+  valor_max?: string;
+  busca?: string;
+}
+
+// Hook interface for Despesas
+export interface UseDespesasReturn {
+  despesas: DespesaComDetalhes[];
+  categorias: CategoriasDespesas[];
+  loading: boolean;
+  error: Error | null;
+  refetch: () => void;
+  createDespesa: (despesa: NovaDespesaForm) => Promise<void>;
+  updateDespesa: (id: string, despesa: Partial<NovaDespesaForm>) => Promise<void>;
+  deleteDespesa: (id: string) => Promise<void>;
+  marcarComoPago: (id: string, data_pagamento: string, conta_id: string) => Promise<void>;
+  gerarProximaRecorrencia: (id: string) => Promise<void>;
 }

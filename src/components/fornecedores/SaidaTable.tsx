@@ -13,13 +13,14 @@ interface Saida {
   valor: number;
   categoria: string;
   status: 'pendente' | 'pago' | 'cancelado';
-  tipo: 'pagamento' | 'abatimento';
+  tipo: 'pagamento' | 'abatimento' | 'despesa';
 }
 
 interface SaidaTableProps {
   saidas?: Saida[];
   pagamentos?: any[];
   abatimentos?: any[];
+  despesas?: any[];
   compras?: any[];
   fornecedores?: any[];
   onEdit?: (saida: Saida) => void;
@@ -30,7 +31,7 @@ interface SaidaTableProps {
   loading?: boolean;
 }
 
-export function SaidaTable({ saidas = [], pagamentos = [], abatimentos = [], compras, fornecedores, onEdit, onDelete, onEditAbatimento, onDeleteAbatimento, onRefresh, loading = false }: SaidaTableProps) {
+export function SaidaTable({ saidas = [], pagamentos = [], abatimentos = [], despesas = [], compras, fornecedores, onEdit, onDelete, onEditAbatimento, onDeleteAbatimento, onRefresh, loading = false }: SaidaTableProps) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
@@ -59,7 +60,7 @@ export function SaidaTable({ saidas = [], pagamentos = [], abatimentos = [], com
     setItemToDelete(null);
   };
 
-  // Combinar pagamentos e abatimentos em uma lista unificada de saídas
+  // Combinar pagamentos, abatimentos e despesas pagas em uma lista unificada de saídas
   const saidasCombinadas = React.useMemo(() => {
     const saidasPagamentos = pagamentos.map(pagamento => ({
       id: pagamento.id,
@@ -82,10 +83,21 @@ export function SaidaTable({ saidas = [], pagamentos = [], abatimentos = [], com
       observacao: abatimento.observacao
     }));
 
+    const saidasDespesas = despesas.map(despesa => ({
+      id: despesa.id,
+      data: despesa.data_pagamento || despesa.data_vencimento,
+      descricao: `Despesa - ${despesa.descricao}`,
+      valor: despesa.valor,
+      categoria: despesa.categoria?.nome || 'Despesa',
+      status: 'pago' as const,
+      tipo: 'despesa' as const,
+      observacao: despesa.observacoes
+    }));
+
     // Combinar e ordenar por data (mais recentes primeiro)
-    return [...saidasPagamentos, ...saidasAbatimentos]
+    return [...saidasPagamentos, ...saidasAbatimentos, ...saidasDespesas]
       .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-  }, [pagamentos, abatimentos]);
+  }, [pagamentos, abatimentos, despesas]);
 
   // Usar saídas combinadas se não foram fornecidas saídas específicas
   const saidasParaExibir = saidas.length > 0 ? saidas : saidasCombinadas;

@@ -20,6 +20,7 @@ import { usePagamentosFornecedores } from '../hooks/usePagamentosFornecedores';
 import { useCompras } from '../hooks/useCompras';
 import { useFornecedores } from '../hooks/useFornecedores';
 import { useAbatimentos } from '../hooks/useAbatimentos';
+import { useDespesas } from '../hooks/useDespesas';
 import { useRealtimeUpdates } from '../hooks/useRealtimeUpdates';
 import { FiltrosEntrada, NovaEntradaForm, Entrada, NovoAbatimentoForm, AbatimentoComDetalhes } from '../types/database';
 import { formatBRL } from '../lib/utils';
@@ -54,6 +55,11 @@ export default function Contas() {
   // Hook para abatimentos
   const { abatimentos, createAbatimento, updateAbatimento, deleteAbatimento, refetch: refetchAbatimentos } = useAbatimentos();
 
+  // Hook para despesas pagas (para incluir na aba Saídas)
+  const { despesas: despesasPagas, refetch: refetchDespesas } = useDespesas({ 
+    status: 'pago' 
+  });
+
   // Hook para atualizações em tempo real
   useRealtimeUpdates({
     onEntradasChange: () => {
@@ -75,14 +81,18 @@ export default function Contas() {
   const contaCora = contas.find(conta => conta.nome.toLowerCase().includes('cora'));
   const totalCora = totaisConta.find(total => total.conta_id === contaCora?.id);
   
-  // Calcular totais de saídas (pagamentos + abatimentos)
+  // Calcular totais de saídas (pagamentos + abatimentos + despesas pagas)
   const totalPagamentos = pagamentos?.reduce((sum, pagamento) => sum + (pagamento.valor_pago || pagamento.paid_value || 0), 0) || 0;
   const totalAbatimentos = abatimentos?.reduce((sum, abatimento) => sum + abatimento.valor, 0) || 0;
-  const totalSaidas = totalPagamentos + totalAbatimentos;
+  const totalDespesasPagas = despesasPagas?.reduce((sum, despesa) => sum + despesa.valor, 0) || 0;
+  const totalSaidas = totalPagamentos + totalAbatimentos + totalDespesasPagas;
   const saldoAtual = (totalCora?.total_recebido || 0) - totalSaidas;
 
   console.log('🏦 Conta Cora encontrada:', contaCora);
   console.log('📊 Total Cora:', totalCora);
+  console.log('💸 Total Pagamentos:', totalPagamentos);
+  console.log('💸 Total Abatimentos:', totalAbatimentos);
+  console.log('💸 Total Despesas Pagas:', totalDespesasPagas);
   console.log('💸 Total Saídas:', totalSaidas);
   console.log('💰 Saldo Atual:', saldoAtual);
 
@@ -370,7 +380,7 @@ export default function Contas() {
           </TabsTrigger>
           <TabsTrigger value="saidas" className="flex items-center gap-2">
             <ArrowDownLeft className="h-4 w-4" />
-            Saídas ({(pagamentos?.length || 0) + (abatimentos?.length || 0)})
+            Saídas ({(pagamentos?.length || 0) + (abatimentos?.length || 0) + (despesasPagas?.length || 0)})
           </TabsTrigger>
         </TabsList>
 
@@ -411,6 +421,7 @@ export default function Contas() {
               <SaidaTable 
                 pagamentos={pagamentos || []}
                 abatimentos={abatimentos || []}
+                despesas={despesasPagas || []}
                 compras={compras || []}
                 fornecedores={fornecedores || []}
                 onRefresh={refreshPagamentos}

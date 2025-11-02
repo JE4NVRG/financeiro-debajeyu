@@ -8,6 +8,7 @@ import {
   CreditCard,
   Store,
   ShoppingCart,
+  Receipt,
   User,
   ChevronDown
 } from 'lucide-react'
@@ -46,6 +47,11 @@ const menuItems = [
     name: 'Compras',
     href: '/compras',
     icon: ShoppingCart
+  },
+  {
+    name: 'Despesas',
+    href: '/despesas',
+    icon: Receipt
   },
   {
     name: 'Sócios',
