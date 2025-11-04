@@ -13,13 +13,9 @@ export function useCurrencyMask() {
     
     const sanitized = sanitizeInput(formattedValue)
     
-    // Se não tem vírgula nem ponto, é um número inteiro
+    // Se não tem vírgula nem ponto, tratar como número inteiro SEM ajuste de centavos
     if (!sanitized.includes(',') && !sanitized.includes('.')) {
       const num = parseFloat(sanitized) || 0
-      // Se o número tem mais de 2 dígitos, assumir que os últimos 2 são centavos
-      if (sanitized.length > 2) {
-        return num / 100
-      }
       return num
     }
     

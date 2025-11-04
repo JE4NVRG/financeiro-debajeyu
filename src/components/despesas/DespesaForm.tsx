@@ -78,7 +78,7 @@ export function DespesaForm({ onSubmit, onCancel, loading = false, initialData }
         }
       }
     }
-  }, [initialData, currencyMask]);
+  }, [initialData]);
 
   const handleValorChange = (numericValue: number) => {
     setValorNumerico(numericValue);
