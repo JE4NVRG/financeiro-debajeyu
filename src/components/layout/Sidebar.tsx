@@ -94,20 +94,20 @@ export function Sidebar({ isMobile = false, isTablet = false, onClose }: Sidebar
   return (
     <div className={`
       ${isMobile ? 'w-80' : isTablet ? 'w-60' : 'w-64'} 
-      bg-bg-primary border-r border-border-color h-screen flex flex-col
+      bg-background border-r border-border h-dvh flex flex-col
       transition-colors duration-200
     `}>
       {/* Logo - Hidden on mobile (shown in MobileHeader) */}
       {!isMobile && (
-        <div className={`${isTablet ? 'p-4' : 'p-6'} border-b border-border-color`}>
+        <div className={`${isTablet ? 'p-4' : 'p-6'} border-b border-border`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Building2 className="h-8 w-8 text-primary-600" />
+              <Building2 className="h-8 w-8 text-primary" />
               <div>
-                <h1 className={`${isTablet ? 'text-lg' : 'text-xl'} font-bold text-text-primary`}>
+                <h1 className={`${isTablet ? 'text-lg' : 'text-xl'} font-bold text-foreground`}>
                   Financeiro
                 </h1>
-                <p className="text-sm text-text-secondary">DEBAJEYU</p>
+                <p className="text-sm text-muted-foreground">DEBAJEYU</p>
               </div>
             </div>
             <ThemeToggle variant="button" size="sm" />
@@ -121,7 +121,7 @@ export function Sidebar({ isMobile = false, isTablet = false, onClose }: Sidebar
       )}
 
       {/* Menu Items */}
-      <nav className={`flex-1 ${isMobile ? 'p-6' : 'p-4'} space-y-2 overflow-y-auto`}>
+      <nav className={`flex-1 ${isMobile ? 'p-6' : 'p-4'} space-y-2 overflow-y-auto ios-smooth-scroll`}>
         {menuItems.map((item) => {
           const Icon = item.icon
           const isActive = location.pathname === item.href || 
@@ -136,10 +136,10 @@ export function Sidebar({ isMobile = false, isTablet = false, onClose }: Sidebar
                 flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200
                 ${isMobile ? 'text-base' : 'text-sm'}
                 ${isActive
-                  ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border-r-2 border-primary-600'
-                  : 'text-text-primary hover:bg-bg-secondary hover:text-text-secondary'
+                  ? 'bg-secondary text-foreground border-l-2 border-primary'
+                  : 'text-foreground hover:bg-secondary hover:text-foreground'
                 }
-                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
                 active:scale-95
               `}
             >
@@ -151,54 +151,54 @@ export function Sidebar({ isMobile = false, isTablet = false, onClose }: Sidebar
       </nav>
 
       {/* User Profile Section */}
-      <div className={`${isMobile ? 'p-6' : 'p-4'} border-t border-border-color`}>
+      <div className={`${isMobile ? 'p-6' : 'p-4'} border-t border-border`}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
               variant="ghost" 
               className={`
                 w-full justify-start p-2 h-auto
-                hover:bg-bg-secondary transition-colors duration-200
-                focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                hover:bg-secondary transition-colors duration-200
+                focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
               `}
             >
               <div className="flex items-center space-x-3 w-full">
                 <Avatar className={`${isMobile ? 'h-10 w-10' : 'h-8 w-8'}`}>
                   <AvatarImage src={userProfile?.avatar_url} />
-                  <AvatarFallback className="bg-primary-100 text-primary-700 text-sm">
+                  <AvatarFallback className="bg-secondary text-foreground text-sm">
                     {userProfile?.full_name ? getInitials(userProfile.full_name) : 
                      user?.login ? getInitials(user.login) : 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-left">
-                  <p className={`${isMobile ? 'text-base' : 'text-sm'} font-medium text-text-primary truncate`}>
+                  <p className={`${isMobile ? 'text-base' : 'text-sm'} font-medium text-foreground truncate`}>
                     {userProfile?.full_name || user?.login || 'Usuário'}
                   </p>
-                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-text-secondary truncate`}>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-muted-foreground truncate`}>
                     {userProfile?.role === 'admin' ? 'Administrador' : 
                      userProfile?.role === 'socio' ? 'Sócio' : 
                      userProfile?.role === 'socio_limitado' ? 'Sócio Limitado' : 'Usuário'}
                   </p>
                 </div>
-                <ChevronDown className="h-4 w-4 text-text-secondary" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent 
             align="end" 
-            className="w-56 bg-bg-primary border-border-color"
+            className="w-56 bg-background border-border"
           >
             <DropdownMenuItem asChild>
               <Link 
                 to="/profile" 
-                className="flex items-center text-text-primary hover:bg-bg-secondary"
+                className="flex items-center text-foreground hover:bg-secondary"
                 onClick={handleMenuItemClick}
               >
                 <User className="h-4 w-4 mr-2" />
                 Meu Perfil
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-border-color" />
+            <DropdownMenuSeparator className="bg-border" />
             <DropdownMenuItem 
               onClick={() => {
                 handleLogout();

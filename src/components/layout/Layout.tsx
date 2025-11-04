@@ -22,7 +22,7 @@ export function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className={`flex h-screen bg-bg-primary transition-colors duration-200 ${theme}`}>
+    <div className={`flex h-dvh bg-background transition-colors duration-200 ${theme}`}>
       {/* Mobile Header */}
       {isMobile && (
         <MobileHeader 
@@ -34,7 +34,7 @@ export function Layout({ children }: LayoutProps) {
       {/* Sidebar Overlay for Mobile */}
       {isMobile && isSidebarOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity duration-300"
+          className="fixed inset-0 z-40 bg-black/60 transition-opacity duration-300"
           onClick={closeSidebar}
         />
       )}
@@ -55,8 +55,8 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Main Content */}
       <main className={`
-        flex-1 overflow-auto
-        ${isMobile ? 'pt-16' : ''}
+        flex-1 overflow-auto ios-smooth-scroll
+        ${isMobile ? 'pt-16 safe-area-padding' : ''}
         transition-all duration-300 ease-in-out
       `}>
         <div className={`

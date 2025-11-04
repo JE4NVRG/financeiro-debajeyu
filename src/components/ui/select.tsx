@@ -18,17 +18,17 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       // Base styles with responsive height for touch
-      "flex w-full items-center justify-between rounded-md border border-border-color bg-bg-primary px-3 py-2",
+      "flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2",
       // Mobile-first approach - larger touch targets
       "h-12 text-base sm:h-10 sm:text-sm",
       // Theme-aware colors
-      "text-text-primary placeholder:text-text-secondary",
+      "text-foreground placeholder:text-muted-foreground",
       // Focus and interaction states
       "shadow-sm transition-all duration-200",
       "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2",
       "hover:border-primary-300 focus:border-primary-500",
       // Disabled state
-      "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-bg-secondary",
+      "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-secondary",
       // Active state for better touch feedback
       "active:scale-[0.98] active:transition-transform active:duration-100",
       // Text truncation
@@ -39,7 +39,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 text-text-secondary" />
+      <ChevronDown className="h-4 w-4 text-muted-foreground" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -138,7 +138,7 @@ const SelectItem = React.forwardRef<
       // Mobile-first approach - larger touch targets
       "py-3 pl-8 pr-2 text-base sm:py-1.5 sm:text-sm",
       // Theme-aware colors
-      "text-text-primary hover:bg-accent focus:bg-accent",
+      "text-foreground hover:bg-accent focus:bg-accent",
       // Disabled state
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
