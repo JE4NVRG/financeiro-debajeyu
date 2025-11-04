@@ -77,7 +77,7 @@ export function useDespesas(filtros?: FiltrosDespesa): UseDespesasReturn {
           )
         `)
         .eq('tipo', 'despesa')
-        .order('data_vencimento', { ascending: true });
+        .order('created_at', { ascending: false });
 
       // Aplicar filtros
       if (filtros) {
