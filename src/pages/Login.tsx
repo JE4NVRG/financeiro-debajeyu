@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
+import { ThemeToggle } from '../components/ThemeToggle'
 
 export function Login() {
   const [username, setUsername] = useState('')
@@ -27,13 +28,16 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>
-            Entre com suas credenciais para acessar o sistema
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Login</CardTitle>
+            <CardDescription>
+              Entre com suas credenciais para acessar o sistema
+            </CardDescription>
+          </div>
+          <ThemeToggle variant="button" size="sm" />
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

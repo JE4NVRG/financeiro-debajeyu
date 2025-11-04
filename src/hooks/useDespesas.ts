@@ -9,6 +9,7 @@ import {
   FiltrosDespesa 
 } from '../types/database';
 import { toast } from 'sonner';
+import { parseBRLToNumber } from '../lib/utils';
 
 export function useDespesas(filtros?: FiltrosDespesa): UseDespesasReturn {
   const { user } = useAuth();
@@ -117,11 +118,11 @@ export function useDespesas(filtros?: FiltrosDespesa): UseDespesasReturn {
         }
 
         if (valor_min) {
-          query = query.gte('valor', parseFloat(valor_min.replace(/[^\d,]/g, '').replace(',', '.')));
+          query = query.gte('valor', parseBRLToNumber(valor_min));
         }
 
         if (valor_max) {
-          query = query.lte('valor', parseFloat(valor_max.replace(/[^\d,]/g, '').replace(',', '.')));
+          query = query.lte('valor', parseBRLToNumber(valor_max));
         }
 
         if (busca) {
@@ -189,7 +190,7 @@ export function useDespesas(filtros?: FiltrosDespesa): UseDespesasReturn {
         tipo: 'despesa',
         subtipo: despesa.subtipo,
         descricao: despesa.descricao.trim(),
-        valor: parseFloat(despesa.valor.replace(/[^\d,]/g, '').replace(',', '.')),
+        valor: parseBRLToNumber(despesa.valor),
         categoria_id: despesa.categoria_id,
         conta_id: despesa.conta_id,
         status: despesa.status || 'pendente',
@@ -231,7 +232,7 @@ export function useDespesas(filtros?: FiltrosDespesa): UseDespesasReturn {
       };
 
       if (despesa.descricao) updateData.descricao = despesa.descricao.trim();
-      if (despesa.valor) updateData.valor = parseFloat(despesa.valor.replace(/[^\d,]/g, '').replace(',', '.'));
+      if (despesa.valor) updateData.valor = parseBRLToNumber(despesa.valor);
       if (despesa.categoria_id) updateData.categoria_id = despesa.categoria_id;
       if (despesa.conta_id) updateData.conta_id = despesa.conta_id;
       if (despesa.subtipo) updateData.subtipo = despesa.subtipo;

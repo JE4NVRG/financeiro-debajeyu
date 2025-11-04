@@ -88,7 +88,8 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border border-border-color bg-bg-primary text-text-primary shadow-lg",
+        // Solid popover background to avoid transparency issues
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-lg",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
         "data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         position === "popper" &&
@@ -137,7 +138,7 @@ const SelectItem = React.forwardRef<
       // Mobile-first approach - larger touch targets
       "py-3 pl-8 pr-2 text-base sm:py-1.5 sm:text-sm",
       // Theme-aware colors
-      "text-text-primary hover:bg-bg-secondary focus:bg-bg-secondary",
+      "text-text-primary hover:bg-accent focus:bg-accent",
       // Disabled state
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
